@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QPR - Portal i Aplikantit</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="application-body">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-text">
+                    <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
+                </a>
+                <a href="qpr-login.html" class="login-link" style="font-size: 14px; padding: 8px 15px;">
+                    Panel QPR
+                    <span class="login-arrow">→</span>
+                </a>
+                <div class="header-actions">
+                    <span class="user-email" id="userEmail">Aplikant</span>
+                    <button class="logout-btn" onclick="logout()">
+                        Dil
+                        <span class="login-arrow">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">Portal i Aplikantit</h2>
+                <p class="dashboard-subtitle">Shiko statusin dhe detajet e aplikimeve të tua</p>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalApplications">0</div>
+                        <div class="stat-label">Aplikime të Dërguara</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="pendingApplications">0</div>
+                        <div class="stat-label">Në Proces</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="approvedApplications">0</div>
+                        <div class="stat-label">Aprovuar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" onclick="switchTab('applications')">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-text">Aplikimet e Mia</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('profile')">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">Profili Im</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('history')">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-text">Historiku</span>
+                </button>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="applicationsTab" class="tab-content active">
+                <div class="applications-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Aplikimet e Mia</h3>
+                        <a href="application.html" class="new-application-btn">
+                            <span class="btn-icon">➕</span>
+                            Aplikim i Ri
+                        </a>
+                    </div>
+                    
+                    <div class="applications-list" id="applicationsList">
+                        <!-- Aplikimet do të shfaqen këtu -->
+                        <div class="no-applications">
+                            <div class="no-applications-icon">📝</div>
+                            <h4>Nuk ke aplikime të dërguara</h4>
+                            <p>Apliko tani për të filluar karrierën tënde në Forcat e Armatosura!</p>
+                            <a href="application.html" class="apply-now-btn">APLIKO TANI</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profileTab" class="tab-content">
+                <div class="profile-section">
+                    <h3 class="section-title">Profili Im</h3>
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <span class="avatar-icon">👤</span>
+                            </div>
+                            <div class="profile-info">
+                                <h4 id="profileName">-</h4>
+                                <p id="profileEmail">-</p>
+                            </div>
+                        </div>
+                        <div class="profile-details" id="profileDetails">
+                            <!-- Detajet do të shfaqen këtu -->
+                        </div>
+                        
+                        <!-- Change Password Section -->
+                        <div class="change-password-section">
+                            <div class="section-divider"></div>
+                            <h4 class="change-password-title">
+                                <span class="password-icon">🔒</span>
+                                Ndrysho Fjalëkalimin
+                            </h4>
+                            <form id="changePasswordForm" class="change-password-form">
+                                <div class="form-group">
+                                    <label for="currentPassword">Fjalëkalimi Aktual:</label>
+                                    <input type="password" id="currentPassword" name="currentPassword" placeholder="Shkruaj fjalëkalimin aktual" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">Fjalëkalimi i Ri:</label>
+                                    <input type="password" id="newPassword" name="newPassword" placeholder="Shkruaj fjalëkalimin e ri" required minlength="6">
+                                    <small class="form-hint">Minimumi 6 karaktere</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmNewPassword">Konfirmo Fjalëkalimin e Ri:</label>
+                                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Konfirmo fjalëkalimin e ri" required minlength="6">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="change-password-btn">
+                                        <span class="btn-icon">💾</span>
+                                        Ruaj Fjalëkalimin e Ri
+                                    </button>
+                                </div>
+                            </form>
+                            <div id="passwordChangeResult" class="password-change-result" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="historyTab" class="tab-content">
+                <div class="history-section">
+                    <h3 class="section-title">Historiku i Aktivitetit</h3>
+                    <div class="history-timeline" id="historyTimeline">
+                        <!-- Historiku do të shfaqet këtu -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Application Details Modal -->
+    <div id="applicationModal" class="application-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeApplicationModal()">&times;</span>
+            <h2 class="modal-title">Detajet e Aplikimit</h2>
+            <div id="applicationDetails" class="application-details">
+                <!-- Detajet do të shfaqen këtu -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Kontrollo nëse përdoruesi është i loguar
+        window.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = localStorage.getItem('applicantLoggedIn');
+            const email = localStorage.getItem('applicantEmail');
+            
+            if (!isLoggedIn || !email) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Display user email with better formatting
+            const userEmailElement = document.getElementById('userEmail');
+            if (userEmailElement) {
+                // Get user's name from applications if available
+                const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                const userApplications = applications.filter(app => app.email === email);
+                const latestApp = userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
+                
+                if (latestApp && latestApp.personalData) {
+                    const fullName = `${latestApp.personalData.firstName || ''} ${latestApp.personalData.lastName || ''}`.trim();
+                    if (fullName) {
+                        userEmailElement.textContent = fullName;
+                        userEmailElement.title = email; // Show email on hover
+                    } else {
+                        userEmailElement.textContent = email;
+                    }
+                } else {
+                    userEmailElement.textContent = email;
+                }
+            }
+            
+            loadApplications();
+        });
+
+        function logout() {
+            localStorage.removeItem('applicantLoggedIn');
+            localStorage.removeItem('applicantEmail');
+            window.location.href = 'login.html';
+        }
+
+        function loadApplications() {
+            // Simulim i aplikimeve (në prodhim do të bëhet me API real)
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const userEmail = localStorage.getItem('applicantEmail');
+            
+            // Filtro aplikimet e këtij përdoruesi
+            const userApplications = applications.filter(app => app.email === userEmail);
+            
+            if (userApplications.length === 0) {
+                document.getElementById('applicationsList').innerHTML = `
+                    <div class="no-applications">
+                        <div class="no-applications-icon">📝</div>
+                        <h4>Nuk ke aplikime të dërguara</h4>
+                        <p>Apliko tani për të filluar karrierën tënde në Forcat e Armatosura!</p>
+                        <a href="application.html" class="apply-now-btn">APLIKO TANI</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Update stats
+            document.getElementById('totalApplications').textContent = userApplications.length;
+            document.getElementById('pendingApplications').textContent = 
+                userApplications.filter(app => app.status === 'pending' || app.status === 'reviewed').length;
+            document.getElementById('approvedApplications').textContent = 
+                userApplications.filter(app => app.status === 'approved').length;
+            
+            // Shfaq aplikimet
+            const listHTML = userApplications.map((app, index) => {
+                const statusClass = app.status || 'pending';
+                const statusText = {
+                    'pending': 'Në Proces',
+                    'reviewed': 'Në Shqyrtim',
+                    'approved': 'Aprovuar',
+                    'rejected': 'Refuzuar'
+                }[statusClass] || 'Në Proces';
+                
+                const statusIcon = {
+                    'pending': '⏳',
+                    'reviewed': '👀',
+                    'approved': '✅',
+                    'rejected': '❌'
+                }[statusClass] || '⏳';
+                
+                return `
+                    <div class="application-card" onclick="showApplicationDetails(${index})">
+                        <div class="application-card-header">
+                            <div class="application-type">
+                                <span class="type-icon">📄</span>
+                                <span class="type-name">${app.type || 'Aplikim'}</span>
+                            </div>
+                            <div class="application-status ${statusClass}">
+                                <span class="status-icon">${statusIcon}</span>
+                                <span class="status-text">${statusText}</span>
+                            </div>
+                        </div>
+                        <div class="application-card-body">
+                            <div class="application-info">
+                                <div class="info-item">
+                                    <span class="info-label">Data e Aplikimit:</span>
+                                    <span class="info-value">${app.submittedDate || 'Nuk dihet'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Numri i Aplikimit:</span>
+                                    <span class="info-value">#${app.id || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="application-card-footer">
+                            <button class="view-details-btn" onclick="event.stopPropagation(); showApplicationDetails(${index})">
+                                Shiko Detajet
+                                <span class="login-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('applicationsList').innerHTML = listHTML;
+            
+            // Ruaj aplikimet në window scope për modal
+            window.userApplications = userApplications;
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.closest('.tab-btn').classList.add('active');
+            
+            // Load tab content if needed
+            if (tabName === 'profile') {
+                loadProfile();
+            } else if (tabName === 'history') {
+                loadHistory();
+            }
+        }
+
+        function loadProfile() {
+            const email = localStorage.getItem('applicantEmail');
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const userApplications = applications.filter(app => app.email === email);
+            
+            // Get most recent application for profile data
+            const latestApp = userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
+            
+            const profileName = latestApp?.personalData ? 
+                `${latestApp.personalData.firstName || ''} ${latestApp.personalData.lastName || ''}`.trim() || email : 
+                email;
+            
+            document.getElementById('profileName').textContent = profileName;
+            document.getElementById('profileEmail').textContent = email;
+            
+            const profileDetails = document.getElementById('profileDetails');
+            if (latestApp && latestApp.personalData) {
+                const pd = latestApp.personalData;
+                profileDetails.innerHTML = `
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Emri:</span>
+                            <span class="detail-value">${pd.firstName || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Mbiemri:</span>
+                            <span class="detail-value">${pd.lastName || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Data e Lindjes:</span>
+                            <span class="detail-value">${pd.birthDate || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Vendi i Lindjes:</span>
+                            <span class="detail-value">${pd.placeOfBirth || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Adresa:</span>
+                            <span class="detail-value">${pd.address || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Telefoni:</span>
+                            <span class="detail-value">${pd.phone || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value">${email}</span>
+                        </div>
+                        ${latestApp.educationData ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Niveli i Arsimit:</span>
+                            <span class="detail-value">${latestApp.educationData.level || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Institucioni:</span>
+                            <span class="detail-value">${latestApp.educationData.institution || 'N/A'}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                profileDetails.innerHTML = `
+                    <div class="empty-state">
+                        <p>Nuk ka informacion profili. Plotëso aplikimin për të shfaqur të dhënat e profilit.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Change Password Form Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            if (changePasswordForm) {
+                changePasswordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const email = localStorage.getItem('applicantEmail');
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                    const resultDiv = document.getElementById('passwordChangeResult');
+                    
+                    // Validation
+                    if (newPassword.length < 6) {
+                        showPasswordResult('error', 'Fjalëkalimi i ri duhet të ketë të paktën 6 karaktere!');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmNewPassword) {
+                        showPasswordResult('error', 'Fjalëkalimet e reja nuk përputhen! Ju lutem kontrolloni.');
+                        return;
+                    }
+                    
+                    // Get users from localStorage
+                    const users = JSON.parse(localStorage.getItem('users') || '[]');
+                    const user = users.find(u => u.email === email);
+                    
+                    if (!user) {
+                        showPasswordResult('error', 'Përdoruesi nuk u gjet!');
+                        return;
+                    }
+                    
+                    // Verify current password
+                    if (user.password !== currentPassword) {
+                        showPasswordResult('error', 'Fjalëkalimi aktual është i gabuar!');
+                        return;
+                    }
+                    
+                    // Update password
+                    user.password = newPassword;
+                    const updatedUsers = users.map(u => u.email === email ? user : u);
+                    localStorage.setItem('users', JSON.stringify(updatedUsers));
+                    
+                    // Show success message
+                    showPasswordResult('success', 'Fjalëkalimi u ndryshua me sukses!');
+                    
+                    // Clear form
+                    changePasswordForm.reset();
+                });
+                
+                // Real-time password confirmation validation
+                const confirmPasswordField = document.getElementById('confirmNewPassword');
+                const newPasswordField = document.getElementById('newPassword');
+                
+                confirmPasswordField.addEventListener('input', function() {
+                    if (newPasswordField.value && this.value) {
+                        if (newPasswordField.value !== this.value) {
+                            this.setCustomValidity('Fjalëkalimet nuk përputhen!');
+                            this.style.borderColor = '#DC3545';
+                        } else {
+                            this.setCustomValidity('');
+                            this.style.borderColor = '#28A745';
+                        }
+                    }
+                });
+                
+                newPasswordField.addEventListener('input', function() {
+                    if (this.value.length < 6) {
+                        this.setCustomValidity('Minimumi 6 karaktere!');
+                        this.style.borderColor = '#DC3545';
+                    } else {
+                        this.setCustomValidity('');
+                        this.style.borderColor = '#28A745';
+                    }
+                });
+            }
+        });
+
+        function showPasswordResult(type, message) {
+            const resultDiv = document.getElementById('passwordChangeResult');
+            resultDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                resultDiv.style.background = 'rgba(40, 167, 69, 0.2)';
+                resultDiv.style.border = '1px solid rgba(40, 167, 69, 0.5)';
+                resultDiv.style.color = '#28A745';
+                resultDiv.innerHTML = `<span style="font-size: 20px; margin-right: 10px;">✅</span> ${message}`;
+            } else {
+                resultDiv.style.background = 'rgba(220, 53, 69, 0.2)';
+                resultDiv.style.border = '1px solid rgba(220, 53, 69, 0.5)';
+                resultDiv.style.color = '#DC3545';
+                resultDiv.innerHTML = `<span style="font-size: 20px; margin-right: 10px;">❌</span> ${message}`;
+            }
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function loadHistory() {
+            const email = localStorage.getItem('applicantEmail');
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const userApplications = applications.filter(app => app.email === email)
+                .sort((a, b) => new Date(b.submittedDate || 0) - new Date(a.submittedDate || 0));
+            
+            const timeline = document.getElementById('historyTimeline');
+            
+            if (userApplications.length === 0) {
+                timeline.innerHTML = `
+                    <div class="empty-state">
+                        <p>Nuk ka aktivitet të regjistruar.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            timeline.innerHTML = userApplications.map(app => {
+                const statusIcon = {
+                    'pending': '⏳',
+                    'reviewed': '👀',
+                    'approved': '✅',
+                    'rejected': '❌'
+                }[app.status] || '⏳';
+                
+                const statusText = {
+                    'pending': 'Në Proces',
+                    'reviewed': 'Në Shqyrtim',
+                    'approved': 'Aprovuar',
+                    'rejected': 'Refuzuar'
+                }[app.status] || 'Në Proces';
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-icon">${statusIcon}</div>
+                        <div class="history-content">
+                            <h4>${app.type || 'Aplikim'}</h4>
+                            <p class="history-date">${app.submittedDate || 'Data e panjohur'}</p>
+                            <p class="history-status ${app.status || 'pending'}">Statusi: ${statusText}</p>
+                            <p class="history-id">Numri i Aplikimit: #${app.id || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showApplicationDetails(index) {
+            const app = window.userApplications[index];
+            if (!app) return;
+            
+            const modal = document.getElementById('applicationModal');
+            const detailsDiv = document.getElementById('applicationDetails');
+            
+            // Build comprehensive details
+            let detailsHTML = `
+                <div class="detail-section">
+                    <h3 class="detail-title">Informacion i Përgjithshëm</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Lloji i Aplikimit:</span>
+                            <span class="detail-value">${app.type || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Numri i Aplikimit:</span>
+                            <span class="detail-value">#${app.id || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Data e Aplikimit:</span>
+                            <span class="detail-value">${app.submittedDate || 'Nuk dihet'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Statusi:</span>
+                            <span class="detail-value status-badge ${app.status || 'pending'}">${app.status || 'Në Proces'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Personal Data
+            if (app.personalData) {
+                const pd = app.personalData;
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Të Dhëna Personale</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Emri:</span>
+                                <span class="detail-value">${pd.firstName || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Mbiemri:</span>
+                                <span class="detail-value">${pd.lastName || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Data e Lindjes:</span>
+                                <span class="detail-value">${pd.birthDate || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Vendi i Lindjes:</span>
+                                <span class="detail-value">${pd.placeOfBirth || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Adresa:</span>
+                                <span class="detail-value">${pd.address || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Telefoni:</span>
+                                <span class="detail-value">${pd.phone || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">${app.email || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Education Data
+            if (app.educationData) {
+                const ed = app.educationData;
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Të Dhëna Arsimore</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Niveli i Arsimit:</span>
+                                <span class="detail-value">${ed.level || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Institucioni:</span>
+                                <span class="detail-value">${ed.institution || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Viti i Diplomimit:</span>
+                                <span class="detail-value">${ed.graduationYear || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Additional Form Data
+            if (app.formData) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Informacion Shtesë</h3>
+                        <div class="detail-grid">
+                `;
+                for (const [key, value] of Object.entries(app.formData)) {
+                    if (value && value !== '' && value !== false) {
+                        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        detailsHTML += `
+                            <div class="detail-item">
+                                <span class="detail-label">${label}:</span>
+                                <span class="detail-value">${value}</span>
+                            </div>
+                        `;
+                    }
+                }
+                detailsHTML += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Motivation
+            if (app.motivation) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Motivimi</h3>
+                        <div class="motivation-box">
+                            <p>${app.motivation}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Preferred Unit
+            if (app.preferredUnit) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Njësia e Preferuar</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Njësia:</span>
+                                <span class="detail-value">${app.preferredUnit}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Comments from QPR
+            if (app.comments) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Komente nga QPR</h3>
+                        <div class="comments-box">
+                            <p>${app.comments}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            detailsDiv.innerHTML = detailsHTML;
+            modal.style.display = 'block';
+        }
+
+        function closeApplicationModal() {
+            document.getElementById('applicationModal').style.display = 'none';
+        }
+
+        // Mbyll modal kur klikohet jashtë
+        window.onclick = function(event) {
+            const modal = document.getElementById('applicationModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+

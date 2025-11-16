@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QPR - Aplikimi për Ushtar ose Detar Aktiv</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="application-body">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-text">
+                    <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
+                </a>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <a href="login.html" class="login-link">
+                        Login
+                        <span class="login-arrow">→</span>
+                    </a>
+                    <a href="qpr-login.html" class="login-link" style="font-size: 14px; padding: 8px 15px;">
+                        Panel QPR
+                        <span class="login-arrow">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content form-page">
+        <div class="container">
+            <div class="form-header">
+                <h1>Formulari i aplikimit</h1>
+                <h2>për</h2>
+                <h2>ushtar ose detar aktiv</h2>
+            </div>
+
+            <form id="ushtarForm" class="application-form">
+                <!-- Të dhënat personale -->
+                <section class="form-section">
+                    <h3 class="section-title">Të dhënat personale</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="emri">Emri:</label>
+                            <input type="text" id="emri" name="emri" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="atesia">Atësia:</label>
+                            <input type="text" id="atesia" name="atesia" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="emriNenes">Emri i nënës:</label>
+                            <input type="text" id="emriNenes" name="emriNenes" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mbiemri">Mbiemri:</label>
+                            <input type="text" id="mbiemri" name="mbiemri" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nrPersonal">Nr personal ID:</label>
+                            <input type="text" id="nrPersonal" name="nrPersonal" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gjinia">Gjinia:</label>
+                            <select id="gjinia" name="gjinia" required>
+                                <option value="">---------</option>
+                                <option value="Mashkull">Mashkull</option>
+                                <option value="Femër">Femër</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="gjatësia">Gjatësia cm:</label>
+                            <input type="number" id="gjatësia" name="gjatësia" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="datelindja">Datëlindja:</label>
+                            <input type="date" id="datelindja" name="datelindja" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendlindja">Vendlindja:</label>
+                            <input type="text" id="vendlindja" name="vendlindja" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendbanimi">Vendbanimi:</label>
+                            <input type="text" id="vendbanimi" name="vendbanimi" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kombesia">Kombësia:</label>
+                            <input type="text" id="kombesia" name="kombesia" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shtetesia">Shtetësia:</label>
+                            <input type="text" id="shtetesia" name="shtetesia" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="adresa">Adresa e banimit:</label>
+                            <input type="text" id="adresa" name="adresa" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nrKontakti">Nr kontakti:</label>
+                            <input type="tel" id="nrKontakti" name="nrKontakti" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fotoPersonale">Foto personale:</label>
+                            <input type="file" id="fotoPersonale" name="fotoPersonale" accept="image/*" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fotoKarte">Foto e kartës ID:</label>
+                            <input type="file" id="fotoKarte" name="fotoKarte" accept="image/*" required>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Arsimi -->
+                <section class="form-section">
+                    <h3 class="section-title">Arsimi</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="arsimi">Arsimi:</label>
+                            <select id="arsimi" name="arsimi" required>
+                                <option value="">---------</option>
+                                <option value="9-vjeçar">9-vjeçar</option>
+                                <option value="I mesëm">I mesëm</option>
+                                <option value="I lartë">I lartë</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="shkollaMesme">Shkolla e mesme:</label>
+                            <select id="shkollaMesme" name="shkollaMesme">
+                                <option value="">---------</option>
+                                <option value="Gjimnaz">Gjimnaz</option>
+                                <option value="Profesionale">Profesionale</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="emriShkolles">Emri i shkollës së mesme:</label>
+                            <input type="text" id="emriShkolles" name="emriShkolles">
+                        </div>
+                        <div class="form-group">
+                            <label for="notaMesatareGjimnaz">Nota mesatare e gjimnazit:</label>
+                            <input type="number" step="0.01" id="notaMesatareGjimnaz" name="notaMesatareGjimnaz" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="notaMesatareProfesionale">Nota mesatare e shkollës profesionale:</label>
+                            <input type="number" step="0.01" id="notaMesatareProfesionale" name="notaMesatareProfesionale" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="profiliShkolles">Profili i shkollës profesionale:</label>
+                            <input type="text" id="profiliShkolles" name="profiliShkolles">
+                        </div>
+                        <div class="form-group">
+                            <label for="llojiUniversitetit">Lloji i universitetit:</label>
+                            <select id="llojiUniversitetit" name="llojiUniversitetit">
+                                <option value="">---------</option>
+                                <option value="Publik">Publik</option>
+                                <option value="Privat">Privat</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="diploma">Diploma e shkollës së lartë:</label>
+                            <select id="diploma" name="diploma">
+                                <option value="">---------</option>
+                                <option value="Bachelor">Bachelor</option>
+                                <option value="Master profesional">Master profesional</option>
+                                <option value="Master shkencor">Master shkencor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="emriShkollesLarte">Emri i shkollës së lartë:</label>
+                            <input type="text" id="emriShkollesLarte" name="emriShkollesLarte">
+                        </div>
+                        <div class="form-group">
+                            <label for="dataFillimit">Data e fillimit të shkollës së lartë:</label>
+                            <input type="date" id="dataFillimit" name="dataFillimit">
+                        </div>
+                        <div class="form-group">
+                            <label for="dataMbarimit">Data e mbarimit të shkollës së lartë:</label>
+                            <input type="date" id="dataMbarimit" name="dataMbarimit">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reparti -->
+                <section class="form-section">
+                    <div class="form-group full-width">
+                        <label for="reparti">Reparti ku preferoni të emëroheni:</label>
+                        <select id="reparti" name="reparti" required>
+                            <option value="">---------</option>
+                            <option value="RU 1002, Zall Herr">RU 1002, Zall Herr</option>
+                            <option value="RU 1045, Batalioni Komando">RU 1045, Batalioni Komando</option>
+                            <option value="RU 1050, Batalioni Forcave Speciale">RU 1050, Batalioni Forcave Speciale</option>
+                            <option value="RU 1010, Vau Dejës">RU 1010, Vau Dejës</option>
+                            <option value="RU 1011, Vau Dejës">RU 1011, Vau Dejës</option>
+                            <option value="RU 1012, Kukës">RU 1012, Kukës</option>
+                            <option value="RU 1013, Burrel">RU 1013, Burrel</option>
+                            <option value="RU 1020, BKL Zhall Herr">RU 1020, BKL Zhall Herr</option>
+                            <option value="RU 1030, Poshnjë, Berat">RU 1030, Poshnjë, Berat</option>
+                            <option value="RU 1031, Poshnjë, Berat">RU 1031, Poshnjë, Berat</option>
+                            <option value="RU 1032, Gjirokastër">RU 1032, Gjirokastër</option>
+                            <option value="RU 1033, Korçë">RU 1033, Korçë</option>
+                            <option value="RU 2006, Plepa, Durrës">RU 2006, Plepa, Durrës</option>
+                            <option value="RU 2020, Kepi Palit, Durrës">RU 2020, Kepi Palit, Durrës</option>
+                            <option value="RU 2030, Pashaliman, Vlorë">RU 2030, Pashaliman, Vlorë</option>
+                            <option value="RU 3002, Rinas">RU 3002, Rinas</option>
+                            <option value="RU 3003, Qendra Stërvitore, Rinas">RU 3003, Qendra Stërvitore, Rinas</option>
+                            <option value="RU 3005, Baza Ajrore, Farkë">RU 3005, Baza Ajrore, Farkë</option>
+                            <option value="RU 3006, Regjimenti i Helikopterëve, Farkë">RU 3006, Regjimenti i Helikopterëve, Farkë</option>
+                            <option value="RU 3007, Reparti i Mbrojtjes Ajrore, Farkë">RU 3007, Reparti i Mbrojtjes Ajrore, Farkë</option>
+                            <option value="RU 4002, Kompania e Mbështetjes, Vaqarr">RU 4002, Kompania e Mbështetjes, Vaqarr</option>
+                            <option value="RU 4006, Batalioni i Furnizimit, Pezë-Helmës">RU 4006, Batalioni i Furnizimit, Pezë-Helmës</option>
+                            <option value="RU 4007, Batalioni i Transportit, Pezë-Helmës">RU 4007, Batalioni i Transportit, Pezë-Helmës</option>
+                            <option value="RU 4030, Baza e Mbështetjes dhe Emergjencave Civile, Dimal">RU 4030, Baza e Mbështetjes dhe Emergjencave Civile, Dimal</option>
+                            <option value="RU 4031, Detashmenti i Mbështetjes Rajonale, Mengël, Elbasan">RU 4031, Detashmenti i Mbështetjes Rajonale, Mengël, Elbasan</option>
+                            <option value="RU 4040, Batalioni i Xhenios, Babrru, Tiranë">RU 4040, Batalioni i Xhenios, Babrru, Tiranë</option>
+                            <option value="RU 5005, Bunavi, Vlorë">RU 5005, Bunavi, Vlorë</option>
+                            <option value="RU 6620, Policia Ushtarake, Vaqarr dhe Rinas">RU 6620, Policia Ushtarake, Vaqarr dhe Rinas</option>
+                            <option value="RU 6630, Batalioni i Mbështetjes së Shtabit të Përgjithshëm">RU 6630, Batalioni i Mbështetjes së Shtabit të Përgjithshëm</option>
+                            <option value="RU 6002, Agjencia e Inteligjencës dhe Sigurisë së Mbrojtjes">RU 6002, Agjencia e Inteligjencës dhe Sigurisë së Mbrojtjes</option>
+                            <option value="Orkestra Simfonike">Orkestra Simfonike</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="motivi">Motivi që ju shtyn të bëheni pjesë e forcave të armatosura:</label>
+                        <textarea id="motivi" name="motivi" rows="4"></textarea>
+                    </div>
+                </section>
+
+                <!-- Pyetësori -->
+                <section class="form-section">
+                    <h3 class="section-title">Pyetësori</h3>
+                    <div class="table-responsive">
+                        <table class="form-table">
+                            <thead>
+                                <tr>
+                                    <th>Nr</th>
+                                    <th>Pyetja</th>
+                                    <th>Përgjigje</th>
+                                    <th>Komenti</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pyetësoriTable">
+                                <!-- Rows will be generated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Deklarimi -->
+                <section class="form-section">
+                    <h3 class="section-title">Deklarimi</h3>
+                    <div class="form-group">
+                        <label for="denuar">A jeni dënuar ndonjëherë nga gjykata?</label>
+                        <select id="denuar" name="denuar" required>
+                            <option value="">---------</option>
+                            <option value="po">po</option>
+                            <option value="jo">jo</option>
+                        </select>
+                    </div>
+                    <div id="denimDetails" style="display:none;">
+                        <label>Specifiko llojin e dënimit që keni marrë. Çeko në krah opsionet që janë të vërteta.</label>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="denim[]" value="Burgim mbi një vit"> Burgim mbi një vit</label>
+                            <label><input type="checkbox" name="denim[]" value="Burgim nën një vit"> Burgim nën një vit</label>
+                            <label><input type="checkbox" name="denim[]" value="Arrest shtëpiak"> Arrest shtëpiak</label>
+                            <label><input type="checkbox" name="denim[]" value="Burgim me përkohësim"> Burgim me përkohësim</label>
+                            <label><input type="checkbox" name="denim[]" value="Gjobë"> Gjobë</label>
+                            <label><input type="checkbox" name="denim[]" value="Konfiskim i pasurisë"> Konfiskim i pasurisë</label>
+                            <label><input type="checkbox" name="denim[]" value="Rikuperim i dëmit"> Rikuperim i dëmit</label>
+                            <label><input type="checkbox" name="denim[]" value="Punë në komunitet"> Punë në komunitet</label>
+                            <label><input type="checkbox" name="denim[]" value="Terapi e detyruar"> Terapi e detyruar</label>
+                            <label><input type="checkbox" name="denim[]" value="Kufizim i të drejtave civile"> Kufizim i të drejtave civile</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="masaSigurise">A është marrë ndonjëherë masë sigurie ndaj jush?</label>
+                        <select id="masaSigurise" name="masaSigurise" required>
+                            <option value="">---------</option>
+                            <option value="po">po</option>
+                            <option value="jo">jo</option>
+                        </select>
+                    </div>
+                    <div id="masaSiguriseDetails" style="display:none;">
+                        <label>Specifiko llojin e masës së sigurisë që marrë ndaj jush. Çeko në krah opsionet që janë të vërteta.</label>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="masaSigurise[]" value="Arrest me burg"> Arrest me burg</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Arrest shtëpie"> Arrest shtëpie</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Detyrim për të qëndruar në një vend të caktuar"> Detyrim për të qëndruar në një vend të caktuar</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Detyrim paraqitje në polici"> Detyrim paraqitje në polici</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Detyrim paraqitje në prokurori"> Detyrim paraqitje në prokurori</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Ndalim i daljeve jashtë vendit"> Ndalim i daljeve jashtë vendit</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Mbikëqyrje elektronike"> Mbikëqyrje elektronike</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Ndalim kontakesh me persona të caktuar"> Ndalim kontakesh me persona të caktuar</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Ndalim ushtrimi aktiviteti"> Ndalim ushtrimi aktiviteti</label>
+                            <label><input type="checkbox" name="masaSigurise[]" value="Sekuestrim i përkohshëm i sendeve pasurore"> Sekuestrim i përkohshëm i sendeve pasurore</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="fazaRekrutimit">Faza e rekrutimit:</label>
+                        <select id="fazaRekrutimit" name="fazaRekrutimit" required>
+                            <option value="">---------</option>
+                            <option value="25-03">25-03</option>
+                            <option value="26-01">26-01</option>
+                            <option value="26-02">26-02</option>
+                            <option value="26-03">26-03</option>
+                            <option value="27-01">27-01</option>
+                            <option value="27-02">27-02</option>
+                            <option value="27-03">27-03</option>
+                            <option value="28-01">28-01</option>
+                            <option value="28-02">28-02</option>
+                            <option value="28-03">28-03</option>
+                            <option value="29-01">29-01</option>
+                            <option value="29-02">29-02</option>
+                            <option value="29-03">29-03</option>
+                            <option value="30-01">30-01</option>
+                            <option value="30-02">30-02</option>
+                            <option value="30-03">30-03</option>
+                        </select>
+                    </div>
+                </section>
+
+                <!-- Formulari shëndetësor -->
+                <section class="form-section">
+                    <h3 class="section-title">Formulari shëndetësor</h3>
+                    <div class="table-responsive">
+                        <table class="form-table">
+                            <thead>
+                                <tr>
+                                    <th>Nr</th>
+                                    <th>Pyetja</th>
+                                    <th>Përgjigje</th>
+                                    <th>Komenti</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shendetesorTable">
+                                <!-- Rows will be generated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Firma -->
+                <section class="form-section">
+                    <h3 class="section-title">Firma</h3>
+                    <div class="form-group full-width">
+                        <label for="firma">Emër, Mbiemër, Firma:</label>
+                        <div class="signature-container">
+                            <canvas id="signatureCanvas" width="600" height="200"></canvas>
+                            <button type="button" onclick="clearSignature()" class="clear-btn">Pastro firmën</button>
+                        </div>
+                        <input type="hidden" id="firma" name="firma">
+                    </div>
+                </section>
+
+                <!-- Kredencialet për Login -->
+                <section class="form-section account-section" id="accountSection">
+                    <h3 class="section-title" id="accountSectionTitle">Kredencialet për Login</h3>
+                    <p class="section-description" id="accountSectionDescription">Krijoni kredencialet për të shikuar statusin e aplikimit tuaj në portal.</p>
+                    
+                    <div id="loggedInInfo" class="logged-in-info" style="display: none;">
+                        <div class="info-box">
+                            <span class="info-icon">✅</span>
+                            <div class="info-text">
+                                <strong>Jeni të loguar si:</strong>
+                                <span id="loggedInEmail"></span>
+                            </div>
+                        </div>
+                        <p class="info-note">Aplikimi do të lidhet automatikisht me llogarinë tuaj.</p>
+                    </div>
+                    
+                    <div class="form-grid" id="credentialsFields">
+                        <div class="form-group">
+                            <label for="accountEmail">Email *</label>
+                            <input type="email" id="accountEmail" name="accountEmail" required placeholder="shkruaj email-in tuaj">
+                            <small class="form-hint">Ky email do të përdoret për login dhe komunikim</small>
+                        </div>
+                        
+                        <div class="form-group" id="passwordGroup">
+                            <label for="accountPassword">Fjalëkalim *</label>
+                            <input type="password" id="accountPassword" name="accountPassword" placeholder="zgjidh një fjalëkalim" minlength="6">
+                            <small class="form-hint">Minimum 6 karaktere (vetëm për llogari të re)</small>
+                        </div>
+                        
+                        <div class="form-group" id="confirmPasswordGroup">
+                            <label for="confirmPassword">Konfirmo Fjalëkalimin *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="konfirmo fjalëkalimin" minlength="6">
+                            <small class="form-hint">Duhet të përputhet me fjalëkalimin (vetëm për llogari të re)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn-large" id="submitButton">Apliko dhe Krijo Llogari</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3 class="footer-title">Qendra e Personel Rekrutimit</h3>
+                    <p class="footer-text">Ky portal është zhvilluar për aplikime në Forcat e Armatosura. Ju faleminderit për besimin!</p>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Faqe bashkëpunuese</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Rekrutim nëpërmjet e-albania</a></li>
+                        <li><a href="#">Udhëzime nga Ministria e Mbrojtjes</a></li>
+                        <li><a href="#">Rreth QPR nga Shtabi i Përgjithshëm</a></li>
+                        <li><a href="#">Paga e ushtarakut</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Kontakto</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="contact-icon">✉</span>
+                            <span>rekrutimit.qpr@aaf.mil.al</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📞</span>
+                            <span>+355686074676</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📍</span>
+                            <span>Rr. Kongresi i Manastirit, Garnizoni "Skënderbej", Tiranë</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Qendra e Personel Rekrutimit — Të gjitha të drejtat e rezervuara.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="form-ushtar.js"></script>
+</body>
+</html>
+

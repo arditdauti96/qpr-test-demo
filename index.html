@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forcat e Armatosura të Shqipërisë - Rekrutim</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-text">
+                    <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
+                </a>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <a href="login.html" class="login-link" id="loginButton" onclick="checkLoginStatus(event)">
+                        Login
+                        <span class="login-arrow">→</span>
+                    </a>
+                    <a href="qpr-login.html" class="login-link" style="background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.4);">
+                        Panel QPR
+                        <span class="login-arrow">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Main Title -->
+            <div class="main-title-section">
+                <h1 class="main-title">Forcat e Armatosura të Shqipërisë</h1>
+            </div>
+
+            <!-- Recruitment Info Section -->
+            <div class="recruitment-info">
+                <div class="logo-section">
+                    <button class="logo-item" onclick="window.location.href='application.html'">
+                        <div class="circular-logo">
+                            <div class="logo-circle">
+                                <div class="eagle-icon">🦅</div>
+                            </div>
+                        </div>
+                        <div class="logo-text-content">
+                            <h2 class="recruitment-title">APLIKO TANI</h2>
+                            <p class="recruitment-subtitle">Fillo procesin e aplikimit për Forcat e Armatosura</p>
+                        </div>
+                    </button>
+
+                    <button class="logo-item why-apply-button-inline" onclick="window.openWhyApplyModal()">
+                        <div class="circular-logo">
+                            <div class="logo-circle">
+                                <div class="eagle-icon">💼</div>
+                            </div>
+                        </div>
+                        <div class="logo-text-content">
+                            <h2 class="recruitment-title">Pse të aplikosh?</h2>
+                            <p class="recruitment-subtitle">Një karrierë prestigjioze dhe e paguar mirë po të pret</p>
+                        </div>
+                    </button>
+
+                    <button class="logo-item why-apply-button-inline" onclick="window.openFaqModal('kerkesat')">
+                        <div class="circular-logo">
+                            <div class="logo-circle">
+                                <div class="eagle-icon">📋</div>
+                            </div>
+                        </div>
+                        <div class="logo-text-content">
+                            <h2 class="recruitment-title">Kërkesat Bazë</h2>
+                            <p class="recruitment-subtitle">Shiko të gjitha kërkesat bazë për aplikim</p>
+                        </div>
+                    </button>
+
+                    <button class="logo-item why-apply-button-inline" onclick="window.openFaqModal('procedurat')">
+                        <div class="circular-logo">
+                            <div class="logo-circle">
+                                <div class="eagle-icon">📝</div>
+                            </div>
+                        </div>
+                        <div class="logo-text-content">
+                            <h2 class="recruitment-title">Procedurat e Aplikimit</h2>
+                            <p class="recruitment-subtitle">Mëso më shumë rreth procedurave të aplikimit</p>
+                        </div>
+                    </button>
+
+                    <button class="logo-item why-apply-button-inline" onclick="window.openFaqModal('procesi')">
+                        <div class="circular-logo">
+                            <div class="logo-circle">
+                                <div class="eagle-icon">⚙️</div>
+                            </div>
+                        </div>
+                        <div class="logo-text-content">
+                            <h2 class="recruitment-title">Procesi i Rekrutimit</h2>
+                            <p class="recruitment-subtitle">Informohu për procesin e plotë të rekrutimit</p>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Carousel Section -->
+                <div class="carousel-section">
+                    <div class="carousel-container">
+                        <div class="carousel-wrapper">
+                            <!-- Slide 1: First Poster -->
+                            <div class="carousel-slide active">
+                                <div class="carousel-content">
+                                    <div class="carousel-image-container">
+                                        <img src="images/versioni_yt_1a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="carousel-image">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Slide 2: Second Poster -->
+                            <div class="carousel-slide">
+                                <div class="carousel-content">
+                                    <div class="carousel-image-container">
+                                        <img src="images/versioni_yt_2a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="carousel-image">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Benefit Modal -->
+    <div id="benefitModal" class="benefit-modal">
+        <div class="benefit-modal-content">
+            <span class="benefit-modal-close" onclick="closeBenefitModal()">&times;</span>
+            <div class="benefit-modal-header">
+                <div class="benefit-modal-icon" id="benefitModalIcon"></div>
+                <h2 id="benefitModalTitle" class="benefit-modal-title"></h2>
+            </div>
+            <div class="benefit-modal-body">
+                <p id="benefitModalDescription" class="benefit-modal-description"></p>
+                <div id="benefitModalDetails" class="benefit-modal-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Modal -->
+    <div id="faqModal" class="faq-modal">
+        <div class="faq-modal-content">
+            <span class="faq-modal-close" onclick="window.closeFaqModal()">&times;</span>
+            <div class="faq-modal-header">
+                <h2 class="faq-modal-title" id="faqModalTitle"></h2>
+                <p class="faq-modal-subtitle" id="faqModalSubtitle"></p>
+            </div>
+            <div class="faq-modal-body" id="faqModalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Apply Modal -->
+    <div id="whyApplyModal" class="why-apply-modal">
+        <div class="why-apply-modal-content">
+            <span class="why-apply-modal-close" onclick="window.closeWhyApplyModal()">&times;</span>
+            <div class="why-apply-modal-header">
+                <h2 class="why-apply-modal-title">Pse të aplikosh?</h2>
+                <p class="why-apply-modal-subtitle">Një karrierë prestigjioze dhe e paguar mirë po të pret</p>
+            </div>
+            <div class="why-apply-modal-body">
+                <div class="why-apply-grid">
+                    <div class="why-apply-item" onclick="window.openBenefitModal(0)">
+                        <div class="why-apply-item-icon">💼</div>
+                        <h3 class="why-apply-item-title">Benefitet Kompetitive</h3>
+                        <p class="why-apply-item-description">Paga e mirë, sigurime shëndetësore, pension dhe përfitime të tjera që garantojnë stabilitet financiar për ty dhe familjen tënde.</p>
+                        <div class="why-apply-item-details">
+                            <ul>
+                                <li>Paga konkurruese që rritet me kohën dhe eksperiencën</li>
+                                <li>Sigurime shëndetësore të plota për ty dhe familjen</li>
+                                <li>Sistem pensioni i garantuar pas shërbimit</li>
+                                <li>Shtesë për veprime të veçanta dhe detyra speciale</li>
+                                <li>Mundësi për bonuse dhe stimulime financiare</li>
+                                <li>Ndihmë për strehim dhe transport</li>
+                                <li>Përfitime për familjen (shkollim, shëndetësi)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="why-apply-item" onclick="window.openBenefitModal(1)">
+                        <div class="why-apply-item-icon">📈</div>
+                        <h3 class="why-apply-item-title">Zhvillim Profesional</h3>
+                        <p class="why-apply-item-description">Mundësi për trajnime të vazhdueshme, avancim në karrierë, dhe zhvillim të aftësive që të ndihmojnë edhe jashtë ushtrisë.</p>
+                        <div class="why-apply-item-details">
+                            <ul>
+                                <li>Trajnime specializuese në fusha të ndryshme</li>
+                                <li>Avancim në gradë dhe pozicione më të larta</li>
+                                <li>Zhvillim i aftësive liderimi dhe menaxhimi</li>
+                                <li>Mundësi për certifikime dhe kualifikime</li>
+                                <li>Eksperiencë që vlerësohet në tregun e punës</li>
+                                <li>Rrjet profesional dhe kontakte</li>
+                                <li>Zhvillim i aftësive teknike dhe teknologjike</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="why-apply-item" onclick="window.openBenefitModal(2)">
+                        <div class="why-apply-item-icon">🌍</div>
+                        <h3 class="why-apply-item-title">Anëtarësimi në NATO</h3>
+                        <p class="why-apply-item-description">Pjesë e një aleance të fuqishme dhe prestigjioze. Shqipëria është anëtare e NATO-s që nga viti 2009.</p>
+                        <div class="why-apply-item-details">
+                            <ul>
+                                <li>Pjesë e aleancës më të fuqishme ushtarake në botë</li>
+                                <li>Mundësi për operacione dhe trajnime ndërkombëtare</li>
+                                <li>Eksperiencë me standardet e larta të NATO-s</li>
+                                <li>Kontakte profesionale me kolegë nga vende të tjera</li>
+                                <li>Mundësi për shkëmbime dhe trajnime jashtë vendit</li>
+                                <li>Prestigj dhe njohje ndërkombëtare</li>
+                                <li>Pjesë e misioneve paqësore dhe humanitare</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="why-apply-item" onclick="window.openBenefitModal(3)">
+                        <div class="why-apply-item-icon">🎓</div>
+                        <h3 class="why-apply-item-title">Edukim dhe Trajnime</h3>
+                        <p class="why-apply-item-description">Akses në programe edukative, kurset specializuese, dhe mundësi për studime në institucione prestigjioze.</p>
+                        <div class="why-apply-item-details">
+                            <ul>
+                                <li>Akses në Akademinë e Forcave të Armatosura</li>
+                                <li>Mundësi për studime universitare me bursë</li>
+                                <li>Kurse specializuese dhe trajnime teknike</li>
+                                <li>Programe trajnimi jashtë vendit</li>
+                                <li>Zhvillim i aftësive gjuhësore (anglisht, gjuhë të tjera)</li>
+                                <li>Certifikime profesionale të njohura</li>
+                                <li>Mundësi për master dhe doktoraturë</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="why-apply-item" onclick="window.openBenefitModal(4)">
+                        <div class="why-apply-item-icon">🤝</div>
+                        <h3 class="why-apply-item-title">Komunitet i Fortë</h3>
+                        <p class="why-apply-item-description">Bëhu pjesë e një komuniteti të lidhur, me vlera të forta dhe respekt të ndërsjellë.</p>
+                        <div class="why-apply-item-details">
+                            <ul>
+                                <li>Komunitet i lidhur dhe solidar</li>
+                                <li>Vlera të forta: besnikëri, nder, kurajë</li>
+                                <li>Mikpritje dhe respekt i ndërsjellë</li>
+                                <li>Mbështetje nga kolegët dhe komandat</li>
+                                <li>Tradita e lavdishme dhe histori e pasur</li>
+                                <li>Celebrime dhe aktivitete të organizuara</li>
+                                <li>Një familje e madhe që të përkrah gjithmonë</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="why-apply-item" onclick="window.openBenefitModal(5)">
+                        <div class="why-apply-item-icon">🏆</div>
+                        <h3 class="why-apply-item-title">Prestigj dhe Respekt</h3>
+                        <p class="why-apply-item-description">Shërbej vendin tënd me krenari dhe fito respektin e shoqërisë si pjesë e Forcave të Armatosura.</p>
+                        <div class="why-apply-item-details">
+                            <ul>
+                                <li>Respekt dhe nderim nga shoqëria</li>
+                                <li>Krenari për shërbimin ndaj vendit</li>
+                                <li>Njohje publike dhe dekorata</li>
+                                <li>Pozicion i rëndësishëm në shoqëri</li>
+                                <li>Traditë e lavdishme ushtarake</li>
+                                <li>Kontribut për sigurinë dhe mbrojtjen e vendit</li>
+                                <li>Legjitimitet dhe besim i shoqërisë</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Modal -->
+    <div id="applicationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeApplication()">&times;</span>
+            <h2>Aplikimi për Rekrutim</h2>
+            <form id="applicationForm">
+                <div class="form-group">
+                    <label for="fullName">Emri dhe Mbiemri:</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefoni:</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="birthDate">Data e Lindjes:</label>
+                    <input type="date" id="birthDate" name="birthDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="position">Pozicioni i dëshiruar:</label>
+                    <select id="position" name="position" required>
+                        <option value="">Zgjidhni pozicionin</option>
+                        <option value="ushtar">Ushtar</option>
+                        <option value="oficer">Oficer</option>
+                        <option value="specialist">Specialist</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Mesazh shtesë:</label>
+                    <textarea id="message" name="message" rows="4"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Dërgo Aplikimin</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

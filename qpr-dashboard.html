@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QPR - Panel i Administratorit</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="application-body">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-text">
+                    <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
+                </a>
+                <div class="header-actions">
+                    <span class="user-email" id="adminName">Administrator</span>
+                    <button class="logout-btn" onclick="logout()">
+                        Dil
+                        <span class="login-arrow">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">Panel i Administratorit</h2>
+                <p class="dashboard-subtitle">Menaxhimi i aplikimeve dhe kandidatëve</p>
+            </div>
+
+            <!-- Statistics -->
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalApps">0</div>
+                        <div class="stat-label">Aplikime të Gjitha</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="pendingApps">0</div>
+                        <div class="stat-label">Në Proces</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👀</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="reviewedApps">0</div>
+                        <div class="stat-label">Në Shqyrtim</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="approvedApps">0</div>
+                        <div class="stat-label">Aprovuar</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="rejectedApps">0</div>
+                        <div class="stat-label">Refuzuar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" onclick="switchTab('applications')">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-text">Aplikimet</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('filters')">
+                    <span class="tab-icon">🔍</span>
+                    <span class="tab-text">Filtro</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('stats')">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-text">Statistikat</span>
+                </button>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="applicationsTab" class="tab-content active">
+                <div class="applications-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Aplikimet</h3>
+                        <div class="filter-controls">
+                            <select id="statusFilter" class="filter-select" onchange="filterApplications()">
+                                <option value="all">Të Gjitha</option>
+                                <option value="pending">Në Proces</option>
+                                <option value="reviewed">Në Shqyrtim</option>
+                                <option value="approved">Aprovuar</option>
+                                <option value="rejected">Refuzuar</option>
+                            </select>
+                            <select id="typeFilter" class="filter-select" onchange="filterApplications()">
+                                <option value="all">Të Gjitha Llojet</option>
+                                <option value="ushtar">Ushtar</option>
+                                <option value="oficer">Oficer</option>
+                                <option value="rezervist">Rezervist</option>
+                                <option value="civil">Civil</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="applications-list" id="applicationsList">
+                        <!-- Aplikimet do të shfaqen këtu -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Tab -->
+            <div id="filtersTab" class="tab-content">
+                <div class="filters-section">
+                    <h3 class="section-title">Filtro Aplikimet</h3>
+                    <div class="filter-panel">
+                        <div class="filter-group">
+                            <label>Statusi:</label>
+                            <div class="filter-checkboxes">
+                                <label><input type="checkbox" value="pending" checked> Në Proces</label>
+                                <label><input type="checkbox" value="reviewed" checked> Në Shqyrtim</label>
+                                <label><input type="checkbox" value="approved" checked> Aprovuar</label>
+                                <label><input type="checkbox" value="rejected" checked> Refuzuar</label>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>Lloji i Aplikimit:</label>
+                            <div class="filter-checkboxes">
+                                <label><input type="checkbox" value="ushtar" checked> Ushtar</label>
+                                <label><input type="checkbox" value="oficer" checked> Oficer</label>
+                                <label><input type="checkbox" value="rezervist" checked> Rezervist</label>
+                                <label><input type="checkbox" value="civil" checked> Civil</label>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>Data e Aplikimit:</label>
+                            <input type="date" id="dateFrom" class="filter-input">
+                            <span style="margin: 0 10px;">deri</span>
+                            <input type="date" id="dateTo" class="filter-input">
+                        </div>
+                        <button class="filter-apply-btn" onclick="applyAdvancedFilters()">Apliko Filtra</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="statsTab" class="tab-content">
+                <div class="stats-section">
+                    <h3 class="section-title">Statistikat e Detajuara</h3>
+                    <div class="stats-grid" id="detailedStats">
+                        <!-- Statistikat do të shfaqen këtu -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Application Details Modal -->
+    <div id="applicationModal" class="application-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeApplicationModal()">&times;</span>
+            <h2 class="modal-title">Detajet e Aplikimit</h2>
+            <div id="applicationDetails" class="application-details">
+                <!-- Detajet do të shfaqen këtu -->
+            </div>
+            <div class="modal-actions" id="modalActions">
+                <!-- Butonat e veprimeve do të shfaqen këtu -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if admin is logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = localStorage.getItem('qprLoggedIn');
+            const email = localStorage.getItem('qprEmail');
+            
+            if (!isLoggedIn || !email) {
+                window.location.href = 'qpr-login.html';
+                return;
+            }
+            
+            const adminName = localStorage.getItem('qprAdminName') || email;
+            document.getElementById('adminName').textContent = adminName;
+            
+            loadApplications();
+            loadStats();
+        });
+
+        function logout() {
+            localStorage.removeItem('qprLoggedIn');
+            localStorage.removeItem('qprEmail');
+            localStorage.removeItem('qprAdminName');
+            window.location.href = 'qpr-login.html';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.closest('.tab-btn').classList.add('active');
+            
+            if (tabName === 'stats') {
+                loadDetailedStats();
+            }
+        }
+
+        function loadApplications() {
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            
+            // Update stats
+            document.getElementById('totalApps').textContent = applications.length;
+            document.getElementById('pendingApps').textContent = 
+                applications.filter(app => app.status === 'pending').length;
+            document.getElementById('reviewedApps').textContent = 
+                applications.filter(app => app.status === 'reviewed').length;
+            document.getElementById('approvedApps').textContent = 
+                applications.filter(app => app.status === 'approved').length;
+            document.getElementById('rejectedApps').textContent = 
+                applications.filter(app => app.status === 'rejected').length;
+            
+            // Sort by date (newest first)
+            const sortedApps = applications.sort((a, b) => {
+                return new Date(b.submittedDate || 0) - new Date(a.submittedDate || 0);
+            });
+            
+            displayApplications(sortedApps);
+        }
+
+        function displayApplications(applications) {
+            const listEl = document.getElementById('applicationsList');
+            
+            if (applications.length === 0) {
+                listEl.innerHTML = `
+                    <div class="no-applications">
+                        <div class="no-applications-icon">📝</div>
+                        <h4>Nuk ka aplikime</h4>
+                        <p>Nuk ka aplikime që të shfaqen me filtrat e zgjedhura.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listEl.innerHTML = applications.map((app, index) => {
+                const statusClass = app.status || 'pending';
+                const statusText = {
+                    'pending': 'Në Proces',
+                    'reviewed': 'Në Shqyrtim',
+                    'approved': 'Aprovuar',
+                    'rejected': 'Refuzuar'
+                }[statusClass] || 'Në Proces';
+                
+                const statusIcon = {
+                    'pending': '⏳',
+                    'reviewed': '👀',
+                    'approved': '✅',
+                    'rejected': '❌'
+                }[statusClass] || '⏳';
+                
+                const applicantName = app.personalData ? 
+                    `${app.personalData.firstName || ''} ${app.personalData.lastName || ''}`.trim() || app.email : 
+                    app.email;
+                
+                return `
+                    <div class="application-card" onclick="showApplicationDetails(${index})">
+                        <div class="application-card-header">
+                            <div class="application-type">
+                                <span class="type-icon">📄</span>
+                                <span class="type-name">${app.type || 'Aplikim'}</span>
+                            </div>
+                            <div class="application-status ${statusClass}">
+                                <span class="status-icon">${statusIcon}</span>
+                                <span class="status-text">${statusText}</span>
+                            </div>
+                        </div>
+                        <div class="application-card-body">
+                            <div class="application-info">
+                                <div class="info-item">
+                                    <span class="info-label">Aplikant:</span>
+                                    <span class="info-value">${applicantName}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value">${app.email || 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Data:</span>
+                                    <span class="info-value">${app.submittedDate || 'Nuk dihet'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">ID:</span>
+                                    <span class="info-value">#${app.id || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="application-card-footer">
+                            <button class="view-details-btn" onclick="event.stopPropagation(); showApplicationDetails(${index})">
+                                Shiko Detajet
+                                <span class="login-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            window.allApplications = applications;
+        }
+
+        function filterApplications() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            
+            let filtered = applications;
+            
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(app => app.status === statusFilter);
+            }
+            
+            if (typeFilter !== 'all') {
+                filtered = filtered.filter(app => {
+                    const type = (app.type || '').toLowerCase();
+                    return type.includes(typeFilter);
+                });
+            }
+            
+            displayApplications(filtered);
+        }
+
+        function applyAdvancedFilters() {
+            // Implement advanced filtering
+            filterApplications();
+        }
+
+        function loadStats() {
+            // Basic stats are loaded in loadApplications
+        }
+
+        function loadDetailedStats() {
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const statsDiv = document.getElementById('detailedStats');
+            
+            // Group by type
+            const byType = {};
+            applications.forEach(app => {
+                const type = app.type || 'Të Panjohur';
+                byType[type] = (byType[type] || 0) + 1;
+            });
+            
+            // Group by status
+            const byStatus = {
+                pending: applications.filter(a => a.status === 'pending').length,
+                reviewed: applications.filter(a => a.status === 'reviewed').length,
+                approved: applications.filter(a => a.status === 'approved').length,
+                rejected: applications.filter(a => a.status === 'rejected').length
+            };
+            
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <h4>Nga Lloji</h4>
+                    ${Object.entries(byType).map(([type, count]) => `
+                        <p><strong>${type}:</strong> ${count}</p>
+                    `).join('')}
+                </div>
+                <div class="stat-card">
+                    <h4>Nga Statusi</h4>
+                    <p><strong>Në Proces:</strong> ${byStatus.pending}</p>
+                    <p><strong>Në Shqyrtim:</strong> ${byStatus.reviewed}</p>
+                    <p><strong>Aprovuar:</strong> ${byStatus.approved}</p>
+                    <p><strong>Refuzuar:</strong> ${byStatus.rejected}</p>
+                </div>
+            `;
+        }
+
+        function showApplicationDetails(index) {
+            const app = window.allApplications[index];
+            if (!app) {
+                console.error('Application not found at index:', index);
+                return;
+            }
+            
+            const modal = document.getElementById('applicationModal');
+            if (!modal) {
+                console.error('Application modal not found!');
+                return;
+            }
+            
+            const detailsDiv = document.getElementById('applicationDetails');
+            const actionsDiv = document.getElementById('modalActions');
+            
+            // Build comprehensive details (same as applicant dashboard)
+            let detailsHTML = `
+                <div class="detail-section">
+                    <h3 class="detail-title">Informacion i Përgjithshëm</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Lloji i Aplikimit:</span>
+                            <span class="detail-value">${app.type || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Numri i Aplikimit:</span>
+                            <span class="detail-value">#${app.id || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Data e Aplikimit:</span>
+                            <span class="detail-value">${app.submittedDate || 'Nuk dihet'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Statusi:</span>
+                            <span class="detail-value status-badge ${app.status || 'pending'}">${app.status || 'Në Proces'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Personal Data
+            if (app.personalData) {
+                const pd = app.personalData;
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Të Dhëna Personale</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Emri:</span>
+                                <span class="detail-value">${pd.firstName || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Mbiemri:</span>
+                                <span class="detail-value">${pd.lastName || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Data e Lindjes:</span>
+                                <span class="detail-value">${pd.birthDate || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Vendi i Lindjes:</span>
+                                <span class="detail-value">${pd.placeOfBirth || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Adresa:</span>
+                                <span class="detail-value">${pd.address || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Telefoni:</span>
+                                <span class="detail-value">${pd.phone || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">${app.email || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Education Data
+            if (app.educationData) {
+                const ed = app.educationData;
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Të Dhëna Arsimore</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Niveli i Arsimit:</span>
+                                <span class="detail-value">${ed.level || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Institucioni:</span>
+                                <span class="detail-value">${ed.institution || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Viti i Diplomimit:</span>
+                                <span class="detail-value">${ed.graduationYear || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Motivation
+            if (app.motivation) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Motivimi</h3>
+                        <div class="motivation-box">
+                            <p>${app.motivation}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Comments from QPR
+            if (app.comments) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Komente nga QPR</h3>
+                        <div class="comments-box">
+                            <p>${app.comments}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            detailsDiv.innerHTML = detailsHTML;
+            
+            // Action buttons
+            const currentStatus = app.status || 'pending';
+            actionsDiv.innerHTML = `
+                <div class="modal-action-buttons">
+                    ${currentStatus !== 'approved' ? `
+                        <button class="action-btn approve-btn" onclick="updateApplicationStatus(${index}, 'approved')">
+                            ✅ Aprovo
+                        </button>
+                    ` : ''}
+                    ${currentStatus !== 'reviewed' && currentStatus !== 'approved' ? `
+                        <button class="action-btn review-btn" onclick="updateApplicationStatus(${index}, 'reviewed')">
+                            👀 Shqyrto
+                        </button>
+                    ` : ''}
+                    ${currentStatus !== 'rejected' ? `
+                        <button class="action-btn reject-btn" onclick="updateApplicationStatus(${index}, 'rejected')">
+                            ❌ Refuzo
+                        </button>
+                    ` : ''}
+                    <button class="action-btn comment-btn" onclick="addComment(${index})">
+                        💬 Shto Koment
+                    </button>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        function updateApplicationStatus(index, newStatus) {
+            const app = window.allApplications[index];
+            if (!app) return;
+            
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const appIndex = applications.findIndex(a => a.id === app.id);
+            
+            if (appIndex !== -1) {
+                applications[appIndex].status = newStatus;
+                localStorage.setItem('applications', JSON.stringify(applications));
+                
+                // Reload
+                loadApplications();
+                closeApplicationModal();
+                
+                alert(`Aplikimi u ${newStatus === 'approved' ? 'aprova' : newStatus === 'rejected' ? 'refuzua' : 'shqyrtua'} me sukses!`);
+            }
+        }
+
+        function addComment(index) {
+            const app = window.allApplications[index];
+            if (!app) return;
+            
+            const comment = prompt('Shkruaj komentin për këtë aplikim:');
+            if (!comment) return;
+            
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const appIndex = applications.findIndex(a => a.id === app.id);
+            
+            if (appIndex !== -1) {
+                applications[appIndex].comments = comment;
+                localStorage.setItem('applications', JSON.stringify(applications));
+                
+                // Reload
+                loadApplications();
+                closeApplicationModal();
+                showApplicationDetails(index);
+                
+                alert('Komenti u shtua me sukses!');
+            }
+        }
+
+        function closeApplicationModal() {
+            document.getElementById('applicationModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('applicationModal');
+            if (event.target === modal) {
+                closeApplicationModal();
+            }
+        }
+    </script>
+</body>
+</html>
+

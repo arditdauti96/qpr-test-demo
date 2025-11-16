@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QPR - Login për Administratorë</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="application-body">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo-text">
+                    <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
+                </a>
+                <a href="index.html" class="login-link" style="text-decoration: none;">
+                    Kthehu në Faqen Kryesore
+                    <span class="login-arrow">←</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="login-icon">🔐</div>
+                        <h2 class="login-title">Login për Administratorë</h2>
+                        <p class="login-subtitle">Panel i QPR - Menaxhimi i Aplikimeve</p>
+                    </div>
+                    
+                    <form id="qprLoginForm" class="login-form">
+                        <div class="form-group">
+                            <label for="qprEmail">Email:</label>
+                            <input type="email" id="qprEmail" name="qprEmail" placeholder="shkruaj email-in e administratorit" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="qprPassword">Fjalëkalimi:</label>
+                            <input type="password" id="qprPassword" name="qprPassword" placeholder="shkruaj fjalëkalimin" required>
+                        </div>
+                        
+                        <button type="submit" class="login-submit-btn">
+                            <span>Hyr në Panel</span>
+                            <span class="login-arrow">→</span>
+                        </button>
+                    </form>
+                    
+                    <div class="login-footer">
+                        <p class="login-help">Kërko ndihmë? <a href="#" onclick="window.openContactQPRModal(); return false;">Kontakto QPR</a></p>
+                        <p style="margin-top: 15px; color: rgba(255, 255, 255, 0.6); font-size: 13px;">
+                            <strong>Kredencialet e Test:</strong><br>
+                            Email: admin@qpr.al<br>
+                            Password: admin123
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Contact QPR Modal (reuse from login.html) -->
+    <div id="contactQPRModal" class="contact-qpr-modal">
+        <div class="contact-qpr-modal-content">
+            <span class="contact-qpr-close" onclick="window.closeContactQPRModal()">&times;</span>
+            <div class="contact-qpr-header">
+                <div class="contact-qpr-icon">📞</div>
+                <h2 class="contact-qpr-title">Kontakto QPR</h2>
+                <p class="contact-qpr-subtitle">Zgjidh mënyrën e kontaktimit</p>
+            </div>
+            
+            <div class="contact-qpr-options">
+                <div class="contact-option" onclick="window.location.href='mailto:rekrutimit.qpr@aaf.mil.al'">
+                    <div class="contact-option-icon">✉️</div>
+                    <div class="contact-option-content">
+                        <h3 class="contact-option-title">Email</h3>
+                        <p class="contact-option-desc">Dërgo një email</p>
+                        <p class="contact-option-value">rekrutimit.qpr@aaf.mil.al</p>
+                    </div>
+                    <div class="contact-option-arrow">→</div>
+                </div>
+                
+                <div class="contact-option" onclick="window.location.href='tel:+355686074676'">
+                    <div class="contact-option-icon">📱</div>
+                    <div class="contact-option-content">
+                        <h3 class="contact-option-title">Telefon</h3>
+                        <p class="contact-option-desc">Na telefononi</p>
+                        <p class="contact-option-value">+355 68 607 4676</p>
+                    </div>
+                    <div class="contact-option-arrow">→</div>
+                </div>
+                
+                <div class="contact-option">
+                    <div class="contact-option-icon">📍</div>
+                    <div class="contact-option-content">
+                        <h3 class="contact-option-title">Adresa</h3>
+                        <p class="contact-option-desc">Vizitoni ne</p>
+                        <p class="contact-option-value">Rr. Kongresi i Manastirit<br>Garnizoni "Skënderbej"<br>Tiranë</p>
+                    </div>
+                </div>
+                
+                <div class="contact-option">
+                    <div class="contact-option-icon">🕒</div>
+                    <div class="contact-option-content">
+                        <h3 class="contact-option-title">Orari</h3>
+                        <p class="contact-option-desc">Orët e punës</p>
+                        <p class="contact-option-value">E Hënë - E Premte<br>08:00 - 16:00</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-qpr-footer">
+                <button type="button" class="contact-qpr-close-btn" onclick="window.closeContactQPRModal()">
+                    Mbyll
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const qprLoginForm = document.getElementById('qprLoginForm');
+            
+            if (!qprLoginForm) {
+                console.error('QPR Login form not found!');
+                return;
+            }
+            
+            qprLoginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('QPR Login form submitted');
+                
+                const email = document.getElementById('qprEmail').value.trim();
+                const password = document.getElementById('qprPassword').value;
+                
+                console.log('Email:', email);
+                console.log('Password provided:', password ? 'Yes' : 'No');
+                
+                if (!email || !password) {
+                    alert('Ju lutem plotësoni të gjitha fushat!');
+                    return;
+                }
+                
+                // Check if admin exists
+                const admins = JSON.parse(localStorage.getItem('qprAdmins') || '[]');
+                const admin = admins.find(a => a.email === email);
+                
+                // Default admin (for testing)
+                const defaultAdmin = {
+                    email: 'admin@qpr.al',
+                    password: 'admin123',
+                    name: 'Administrator QPR',
+                    role: 'admin'
+                };
+                
+                let validAdmin = null;
+                
+                if (admin && admin.password === password) {
+                    validAdmin = admin;
+                } else if (email === defaultAdmin.email && password === defaultAdmin.password) {
+                    validAdmin = defaultAdmin;
+                    // Save default admin if not exists
+                    if (!admin) {
+                        admins.push(defaultAdmin);
+                        localStorage.setItem('qprAdmins', JSON.stringify(admins));
+                    }
+                }
+                
+                if (!validAdmin) {
+                    console.log('Invalid credentials');
+                    alert('Email ose fjalëkalim i gabuar! Ju lutem kontrolloni kredencialet tuaja.\n\nPër test:\nEmail: admin@qpr.al\nPassword: admin123');
+                    return;
+                }
+                
+                console.log('Login successful, redirecting...');
+                
+                // Login successful
+                localStorage.setItem('qprLoggedIn', 'true');
+                localStorage.setItem('qprEmail', email);
+                localStorage.setItem('qprAdminName', validAdmin.name || 'Administrator');
+                
+                console.log('LocalStorage set. Redirecting to QPR dashboard...');
+                
+                // Redirect to QPR dashboard
+                window.location.replace('qpr-dashboard.html');
+            });
+        });
+        
+        // Contact QPR Modal Functions
+        window.openContactQPRModal = function() {
+            const modal = document.getElementById('contactQPRModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        window.closeContactQPRModal = function() {
+            const modal = document.getElementById('contactQPRModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const contactModal = document.getElementById('contactQPRModal');
+            if (event.target === contactModal) {
+                window.closeContactQPRModal();
+            }
+        });
+    </script>
+</body>
+</html>
+
+

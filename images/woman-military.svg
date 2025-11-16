@@ -1,0 +1,26 @@
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="militaryGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d5016;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ade80;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#militaryGrad)"/>
+  <!-- Silhouette of woman in military uniform, profile right -->
+  <g fill="#4a2c7a" opacity="0.9">
+    <!-- Head -->
+    <ellipse cx="600" cy="200" rx="80" ry="90"/>
+    <!-- Military cap -->
+    <rect x="520" y="120" width="160" height="30" rx="5"/>
+    <ellipse cx="600" cy="150" rx="80" ry="20"/>
+    <!-- Shoulders with military uniform -->
+    <path d="M 520 320 Q 520 360 540 360 Q 560 360 580 350 Q 600 345 620 350 Q 640 360 660 360 Q 680 360 680 320"/>
+    <!-- Upper body in uniform -->
+    <ellipse cx="600" cy="450" rx="90" ry="120"/>
+    <!-- Badge/shoulder patch -->
+    <circle cx="640" cy="380" r="15" fill="#ffd700" opacity="0.8"/>
+    <!-- Hair tucked under cap -->
+    <path d="M 540 150 Q 520 160 530 170 Q 540 180 560 175 Q 580 170 600 175 Q 620 170 640 175 Q 660 180 670 170 Q 680 160 660 150 L 600 150 Z"/>
+  </g>
+</svg>
+
