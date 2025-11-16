@@ -1020,6 +1020,61 @@ body.application-body {
     object-fit: cover;
 }
 
+/* Responsive – Application page */
+@media (max-width: 1024px) {
+    .application-layout.with-poster {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .application-poster-frame {
+        height: 420px;
+    }
+    .application-option {
+        padding: 16px 18px;
+    }
+    .option-text {
+        font-size: 14px;
+    }
+    .option-bullet {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .application-page {
+        padding: 24px 0;
+    }
+    .application-poster-frame {
+        height: 360px;
+        border-radius: 14px;
+    }
+    .application-option {
+        padding: 14px 16px;
+        border-width: 1.5px;
+        gap: 12px;
+    }
+    .option-text {
+        font-size: 13.5px;
+        line-height: 1.35;
+    }
+}
+
+@media (max-width: 480px) {
+    .application-poster-frame {
+        height: 280px;
+        border-radius: 12px;
+    }
+    .application-option {
+        padding: 12px 14px;
+        border-radius: 10px;
+    }
+    .option-bullet {
+        font-size: 20px;
+    }
+    .option-text {
+        font-size: 13px;
+    }
+}
 /* Application Menu (Left Column) */
 .application-menu {
     display: flex;
