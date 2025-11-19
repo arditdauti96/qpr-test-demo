@@ -177,7 +177,70 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
     <script>
+        function formatDateForDisplay(value) {
+            if (!value) return '';
+            
+            if (value instanceof Date) {
+                const day = value.getDate().toString().padStart(2, '0');
+                const month = (value.getMonth() + 1).toString().padStart(2, '0');
+                const year = value.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+            
+            if (typeof value === 'string') {
+                const displayMatch = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                if (displayMatch) {
+                    return value;
+                }
+                
+                const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (isoMatch) {
+                    const [, year, month, day] = isoMatch;
+                    return `${day}-${month}-${year}`;
+                }
+                
+                const parsed = Date.parse(value);
+                if (!isNaN(parsed)) {
+                    return formatDateForDisplay(new Date(parsed));
+                }
+            }
+            
+            return value;
+        }
+        
+        function getComparableDateValue(value) {
+            if (!value) return 0;
+            
+            if (value instanceof Date) {
+                return value.getTime();
+            }
+            
+            if (typeof value === 'string') {
+                const displayMatch = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                if (displayMatch) {
+                    const [, day, month, year] = displayMatch;
+                    const dateObj = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+                    return dateObj.getTime();
+                }
+                
+                const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (isoMatch) {
+                    const [, year, month, day] = isoMatch;
+                    const dateObj = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+                    return dateObj.getTime();
+                }
+                
+                const parsed = Date.parse(value);
+                if (!isNaN(parsed)) {
+                    return parsed;
+                }
+            }
+            
+            return 0;
+        }
         // Check if admin is logged in
         window.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = localStorage.getItem('qprLoggedIn');
@@ -234,7 +297,7 @@
             
             // Sort by date (newest first)
             const sortedApps = applications.sort((a, b) => {
-                return new Date(b.submittedDate || 0) - new Date(a.submittedDate || 0);
+                return getComparableDateValue(b.submittedDate) - getComparableDateValue(a.submittedDate);
             });
             
             displayApplications(sortedApps);
@@ -274,6 +337,8 @@
                     `${app.personalData.firstName || ''} ${app.personalData.lastName || ''}`.trim() || app.email : 
                     app.email;
                 
+                const submittedDate = formatDateForDisplay(app.submittedDate) || 'Nuk dihet';
+                
                 return `
                     <div class="application-card" onclick="showApplicationDetails(${index})">
                         <div class="application-card-header">
@@ -298,7 +363,7 @@
                                 </div>
                                 <div class="info-item">
                                     <span class="info-label">Data:</span>
-                                    <span class="info-value">${app.submittedDate || 'Nuk dihet'}</span>
+                                    <span class="info-value">${submittedDate}</span>
                                 </div>
                                 <div class="info-item">
                                     <span class="info-label">ID:</span>
@@ -402,6 +467,7 @@
             const actionsDiv = document.getElementById('modalActions');
             
             // Build comprehensive details (same as applicant dashboard)
+            const submittedDate = formatDateForDisplay(app.submittedDate) || 'Nuk dihet';
             let detailsHTML = `
                 <div class="detail-section">
                     <h3 class="detail-title">Informacion i Përgjithshëm</h3>
@@ -416,7 +482,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Data e Aplikimit:</span>
-                            <span class="detail-value">${app.submittedDate || 'Nuk dihet'}</span>
+                            <span class="detail-value">${submittedDate}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Statusi:</span>
@@ -429,6 +495,7 @@
             // Personal Data
             if (app.personalData) {
                 const pd = app.personalData;
+                const birthDate = formatDateForDisplay(pd.birthDate) || 'N/A';
                 detailsHTML += `
                     <div class="detail-section">
                         <h3 class="detail-title">Të Dhëna Personale</h3>
@@ -443,7 +510,7 @@
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Data e Lindjes:</span>
-                                <span class="detail-value">${pd.birthDate || 'N/A'}</span>
+                                <span class="detail-value">${birthDate}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Vendi i Lindjes:</span>
@@ -555,6 +622,14 @@
                 applications[appIndex].status = newStatus;
                 localStorage.setItem('applications', JSON.stringify(applications));
                 
+                if (newStatus === 'approved') {
+                    try {
+                        generateAcceptancePdf(applications[appIndex]);
+                    } catch (error) {
+                        console.error('Failed to generate acceptance PDF:', error);
+                    }
+                }
+                
                 // Reload
                 loadApplications();
                 closeApplicationModal();
@@ -596,6 +671,118 @@
             if (event.target === modal) {
                 closeApplicationModal();
             }
+        }
+        
+        function createPdfDocument() {
+            if (!window.jspdf || !window.jspdf.jsPDF) return null;
+            const { jsPDF } = window.jspdf;
+            return new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
+            });
+        }
+        
+        function ensurePageSpace(doc, y, needed = 10) {
+            if (y + needed > 285) {
+                doc.addPage();
+                return 20;
+            }
+            return y;
+        }
+        
+        function addBlockText(doc, text, y, options = {}) {
+            const { x = 14, maxWidth = 180, lineHeight = 6, fontStyle = 'normal' } = options;
+            doc.setFont('helvetica', fontStyle);
+            const lines = doc.splitTextToSize(text, maxWidth);
+            lines.forEach(line => {
+                y = ensurePageSpace(doc, y, lineHeight);
+                doc.text(line, x, y);
+                y += lineHeight;
+            });
+            return y;
+        }
+        
+        function generateAcceptancePdf(app) {
+            const doc = createPdfDocument();
+            if (!doc) {
+                console.warn('jsPDF not available; skipping acceptance PDF.');
+                return;
+            }
+            
+            const personal = app.personalData || {};
+            const formData = app.formData || {};
+            const firstName = personal.firstName || '';
+            const lastName = personal.lastName || '';
+            const fatherName = formData.atesia || '';
+            const dob = formatDateForDisplay(personal.birthDate || formData.datelindja) || '';
+            const pob = personal.placeOfBirth || formData.vendlindja || '';
+            const residence = personal.address || formData.vendbanimi || '';
+            const idNumber = formData.nrPersonal || '';
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('FORMULAR I PRANIMIT', 105, 15, { align: 'center' });
+            doc.text('TË DOKUMENTACIONIT TË APLIKANTIT PËR USHTAR/DETAR AKTIV', 105, 22, { align: 'center' });
+            
+            doc.setFontSize(11);
+            let y = 32;
+            
+            y = addBlockText(doc, 'I. TË DHËNA PERSONALE:', y, { fontStyle: 'bold' });
+            y = addBlockText(doc, `• Emri: ${firstName}      Atësia: ${fatherName}      Mbiemri: ${lastName}`, y);
+            y = addBlockText(doc, `• Datëlindja: ${dob}      Vendlindja: ${pob}      Vendbanimi: ${residence}`, y);
+            y = addBlockText(doc, `• Numri i Kartës së identitetit: ${idNumber}`, y);
+            
+            y = addBlockText(doc, '', y);
+            y = addBlockText(doc, 'II. VERIFIKIMI I DOKUMENTACIONIT.', y, { fontStyle: 'bold' });
+            y = addBlockText(doc, 'Specialistët e Seksionit të Rekrutimit, pranë QPR, pasi verifikuan pyetësorin e aplikimit për ushtar/detarë aktivë, të plotësuar nga aplikanti, si dhe dokumentacionin e dorëzuar nga ana e tij, vërejnë se:', y);
+            
+            const blankLine = '________________________________________________________________________________';
+            y = addBlockText(doc, '☐  Aplikanti ka dorëzuar dokumentacionin e kërkuar sipas kërkesave të udhëzimit.', y);
+            y = addBlockText(doc, '☐  Aplikanti nuk ka dorëzuar:______________________________________________', y);
+            y = addBlockText(doc, blankLine, y);
+            y = addBlockText(doc, '☐  Aplikanti plotëson kriteret për vijimin e procedurave të testimit.', y);
+            y = addBlockText(doc, '☐  Aplikanti nuk plotëson kriteret për vijimin e procedurave të testimit.', y);
+            y = addBlockText(doc, blankLine, y);
+            
+            y = addBlockText(doc, `Me qëllim vijimin e procedurave të testimit, bashkëlidhur ju dërgojmë dokumentacionin e dorëzuar nga aplikanti ${firstName} ${fatherName} ${lastName}, si më poshtë:`, y + 4);
+            
+            const docs = [
+                '1. Kërkesë me shkrim;',
+                '2. Fotokopje e Kartës së Identitetit;',
+                '3. Dy fotografi të përmasave 4x6;',
+                '4. Dy fotografi të përmasave 9x12;',
+                '5. Fotokopje e noterizuar e dëftesës/diplomës së shkollës/universitetit;',
+                '6. Fotokopje diplome/dëshmie/certifikate për aftësi profesionale të noterizuar (nëse ka);',
+                '7. Fotokopje patente për drejtim automjeti të noterizuar (nëse ka);',
+                '8. Dokument i qendrës shëndetësore të lëshuar nga mjeku i familjes;',
+                '9. Ekzaminime mjekësore për agjentët infektivë (Hepatit B, Hepatit C, HIV/AIDS, Sifiliz) dhe grupi i gjakut;',
+                '10. Formularin e aplikimit për ushtar/detar aktiv;',
+                '11. Formularin e pranimit të dokumentacionit të aplikantit;',
+                '12. Formularin e vetëdeklarimit të gjendjes shëndetësore, Aneksi C;',
+                '13. Formularin e kushtit të sigurisë;',
+                '14. Dëshmi penaliteti;',
+                '15. Vërtetim gjykate;',
+                '16. Vërtetim Prokurorie.'
+            ];
+            
+            docs.forEach(item => {
+                y = addBlockText(doc, item, y);
+            });
+            
+            y = addBlockText(doc, '', y);
+            y = addBlockText(doc, '         Specialisti i Rekrutimit                                 Aplikanti', y);
+            y = addBlockText(doc, '(___Gradë/Emër/Mbiemër/______)                (_______________________________)', y);
+            y = addBlockText(doc, '(Nënshkrimi)                                       (Emër  Mbiemër  Nënshkrimi)', y + 2);
+            
+            y = ensurePageSpace(doc, y + 8, 20);
+            y = addBlockText(doc, 'Shënim: Dokumentacioni i aplikantit i plotësuar pranë QPR, së bashku me dokumentacionin e dorëzuar prej tij, është pjesë e pandarë e dosjes personale të kandidatit për ushtar/detar aktiv.', y);
+            
+            y = addBlockText(doc, 'Mora njoftim se: Duhet të paraqitem me veshje të rregullt në procedurat e testimit për rekrutim si ushtar/detar aktiv që do të zhvillohen në Qendrën e Personel Rekrutimit, Tiranë, më datën ____/____/2025.', y + 4);
+            y = addBlockText(doc, 'Tiranë, më ____/____/2025', y + 4);
+            
+            const fileName = `Formulari_Pranimit_${app.id || Date.now()}.pdf`;
+            doc.save(fileName);
         }
     </script>
 </body>
