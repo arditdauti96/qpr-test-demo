@@ -78,10 +78,6 @@
                     <span class="tab-icon">📋</span>
                     <span class="tab-text">Aplikimet</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab('filters')">
-                    <span class="tab-icon">🔍</span>
-                    <span class="tab-text">Filtro</span>
-                </button>
                 <button class="tab-btn" onclick="switchTab('stats')">
                     <span class="tab-icon">📊</span>
                     <span class="tab-text">Statistikat</span>
@@ -93,60 +89,56 @@
                 <div class="applications-section">
                     <div class="section-header">
                         <h3 class="section-title">Aplikimet</h3>
-                        <div class="filter-controls">
-                            <select id="statusFilter" class="filter-select" onchange="filterApplications()">
-                                <option value="all">Të Gjitha</option>
-                                <option value="pending">Në Proces</option>
-                                <option value="reviewed">Në Shqyrtim</option>
-                                <option value="approved">Aprovuar</option>
-                                <option value="rejected">Refuzuar</option>
-                            </select>
-                            <select id="typeFilter" class="filter-select" onchange="filterApplications()">
-                                <option value="all">Të Gjitha Llojet</option>
-                                <option value="ushtar">Ushtar</option>
-                                <option value="oficer">Oficer</option>
-                                <option value="rezervist">Rezervist</option>
-                                <option value="civil">Civil</option>
-                            </select>
+                    </div>
+                    
+                    <div class="filters-section inline">
+                        <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">Mbyll filtrat ↑</button>
+                        <div class="filter-panel compact collapsible" id="filtersPanel">
+                            <div class="filter-group collapsible" data-group="status">
+                                <button type="button" class="filter-group-toggle" onclick="toggleFilterGroup('status')">
+                                    <span>Statusi i aplikimit:</span>
+                                    <span class="toggle-icon">▲</span>
+                                </button>
+                                <div class="filter-group-body" id="filterGroup-status">
+                                    <div class="filter-checkboxes">
+                                        <label><input type="checkbox" name="statusFilter" value="pending"> Në Proces</label>
+                                        <label><input type="checkbox" name="statusFilter" value="reviewed"> Në Shqyrtim</label>
+                                        <label><input type="checkbox" name="statusFilter" value="approved"> Aprovuar</label>
+                                        <label><input type="checkbox" name="statusFilter" value="rejected"> Refuzuar</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-group collapsible" data-group="type">
+                                <button type="button" class="filter-group-toggle" onclick="toggleFilterGroup('type')">
+                                    <span>Lloji i Aplikimit:</span>
+                                    <span class="toggle-icon">▲</span>
+                                </button>
+                                <div class="filter-group-body" id="filterGroup-type">
+                                    <div class="filter-checkboxes">
+                                        <label><input type="checkbox" name="typeFilter" value="ushtar"> Ushtar</label>
+                                        <label><input type="checkbox" name="typeFilter" value="oficer"> Oficer</label>
+                                        <label><input type="checkbox" name="typeFilter" value="rezervist"> Rezervist</label>
+                                        <label><input type="checkbox" name="typeFilter" value="civil"> Civil</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Data e Aplikimit:</label>
+                                <div class="filter-dates">
+                                    <input type="date" id="dateFrom" class="filter-input">
+                                    <span style="margin: 0 10px;">deri</span>
+                                    <input type="date" id="dateTo" class="filter-input">
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button class="filter-apply-btn" onclick="applyFilters()">Apliko Filtra</button>
+                                <button class="filter-reset-btn" onclick="resetFilters()">Rivendos</button>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="applications-list" id="applicationsList">
                         <!-- Aplikimet do të shfaqen këtu -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filters Tab -->
-            <div id="filtersTab" class="tab-content">
-                <div class="filters-section">
-                    <h3 class="section-title">Filtro Aplikimet</h3>
-                    <div class="filter-panel">
-                        <div class="filter-group">
-                            <label>Statusi:</label>
-                            <div class="filter-checkboxes">
-                                <label><input type="checkbox" value="pending" checked> Në Proces</label>
-                                <label><input type="checkbox" value="reviewed" checked> Në Shqyrtim</label>
-                                <label><input type="checkbox" value="approved" checked> Aprovuar</label>
-                                <label><input type="checkbox" value="rejected" checked> Refuzuar</label>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <label>Lloji i Aplikimit:</label>
-                            <div class="filter-checkboxes">
-                                <label><input type="checkbox" value="ushtar" checked> Ushtar</label>
-                                <label><input type="checkbox" value="oficer" checked> Oficer</label>
-                                <label><input type="checkbox" value="rezervist" checked> Rezervist</label>
-                                <label><input type="checkbox" value="civil" checked> Civil</label>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <label>Data e Aplikimit:</label>
-                            <input type="date" id="dateFrom" class="filter-input">
-                            <span style="margin: 0 10px;">deri</span>
-                            <input type="date" id="dateTo" class="filter-input">
-                        </div>
-                        <button class="filter-apply-btn" onclick="applyAdvancedFilters()">Apliko Filtra</button>
                     </div>
                 </div>
             </div>
@@ -256,6 +248,21 @@
             
             loadApplications();
             loadStats();
+            
+            const filterInputs = document.querySelectorAll('input[name="statusFilter"], input[name="typeFilter"]');
+            filterInputs.forEach(input => {
+                input.addEventListener('change', applyFilters);
+            });
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo = document.getElementById('dateTo');
+            if (dateFrom) dateFrom.addEventListener('change', applyFilters);
+            if (dateTo) dateTo.addEventListener('change', applyFilters);
+            
+            const filtersPanel = document.getElementById('filtersPanel');
+            if (filtersPanel) {
+                filtersPanel.style.maxHeight = filtersPanel.scrollHeight + 'px';
+            }
+            ['status', 'type'].forEach(group => toggleFilterGroup(group, false));
         });
 
         function logout() {
@@ -300,7 +307,9 @@
                 return getComparableDateValue(b.submittedDate) - getComparableDateValue(a.submittedDate);
             });
             
+            window.allApplicationsFull = sortedApps;
             displayApplications(sortedApps);
+            applyFilters();
         }
 
         function displayApplications(applications) {
@@ -384,30 +393,75 @@
             window.allApplications = applications;
         }
 
-        function filterApplications() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+        function applyFilters() {
+            if (!window.allApplicationsFull) return;
             
-            let filtered = applications;
+            const statusValues = Array.from(document.querySelectorAll('input[name="statusFilter"]:checked')).map(cb => cb.value);
+            const typeValues = Array.from(document.querySelectorAll('input[name="typeFilter"]:checked')).map(cb => cb.value);
+            const dateFrom = document.getElementById('dateFrom')?.value;
+            const dateTo = document.getElementById('dateTo')?.value;
             
-            if (statusFilter !== 'all') {
-                filtered = filtered.filter(app => app.status === statusFilter);
+            let filtered = [...window.allApplicationsFull];
+            
+            if (statusValues.length > 0) {
+                filtered = filtered.filter(app => statusValues.includes(app.status || 'pending'));
             }
             
-            if (typeFilter !== 'all') {
+            if (typeValues.length > 0) {
                 filtered = filtered.filter(app => {
                     const type = (app.type || '').toLowerCase();
-                    return type.includes(typeFilter);
+                    return typeValues.some(val => type.includes(val));
                 });
+            }
+            
+            if (dateFrom) {
+                const fromValue = getComparableDateValue(dateFrom);
+                filtered = filtered.filter(app => getComparableDateValue(app.submittedDate) >= fromValue);
+            }
+            
+            if (dateTo) {
+                const toValue = getComparableDateValue(dateTo);
+                filtered = filtered.filter(app => getComparableDateValue(app.submittedDate) <= toValue);
             }
             
             displayApplications(filtered);
         }
-
-        function applyAdvancedFilters() {
-            // Implement advanced filtering
-            filterApplications();
+        
+        function resetFilters() {
+            document.querySelectorAll('input[name="statusFilter"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="typeFilter"]').forEach(cb => cb.checked = false);
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo = document.getElementById('dateTo');
+            if (dateFrom) dateFrom.value = '';
+            if (dateTo) dateTo.value = '';
+            if (window.allApplicationsFull) {
+                displayApplications(window.allApplicationsFull);
+            }
+        }
+        
+        function toggleFilters() {
+            const panel = document.getElementById('filtersPanel');
+            const toggleBtn = document.getElementById('filterToggleBtn');
+            if (!panel || !toggleBtn) return;
+            
+            const isCollapsed = panel.classList.toggle('collapsed');
+            if (isCollapsed) {
+                panel.style.maxHeight = '0px';
+                toggleBtn.textContent = 'Hap filtrat ↓';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                toggleBtn.textContent = 'Mbyll filtrat ↑';
+            }
+        }
+        
+        function toggleFilterGroup(group, toggle = true) {
+            const wrapper = document.querySelector(`.filter-group[data-group="${group}"]`);
+            const body = document.getElementById(`filterGroup-${group}`);
+            if (!wrapper || !body) return;
+            
+            const shouldCollapse = toggle ? !wrapper.classList.contains('collapsed') : false;
+            wrapper.classList.toggle('collapsed', shouldCollapse);
+            body.style.display = shouldCollapse ? 'none' : 'block';
         }
 
         function loadStats() {
