@@ -623,6 +623,38 @@
                 `;
             }
             
+            // Documents Section
+            if (app.documents && app.documents.length > 0) {
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Dokumentet e Ngarkuara</h3>
+                        <div class="documents-section">
+                            <div class="documents-grid">
+                `;
+                app.documents.forEach((doc, docIndex) => {
+                    const sizeKB = (doc.size / 1024).toFixed(2);
+                    detailsHTML += `
+                        <div class="document-card">
+                            <div class="document-card-header">
+                                <span class="document-icon">📄</span>
+                                <span class="document-card-name">${doc.name}</span>
+                            </div>
+                            <div class="document-card-info">
+                                <span class="document-card-size">${sizeKB} KB</span>
+                                <button class="download-document-btn" onclick="downloadDocument(${index}, ${docIndex})">
+                                    <span>⬇</span> Shkarko
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                detailsHTML += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             // Comments from QPR
             if (app.comments) {
                 detailsHTML += `
@@ -717,6 +749,22 @@
 
         function closeApplicationModal() {
             document.getElementById('applicationModal').style.display = 'none';
+        }
+        
+        function downloadDocument(appIndex, docIndex) {
+            const app = window.allApplications[appIndex];
+            if (!app || !app.documents || !app.documents[docIndex]) {
+                alert('Dokumenti nuk u gjet!');
+                return;
+            }
+            
+            const doc = app.documents[docIndex];
+            const link = document.createElement('a');
+            link.href = doc.data;
+            link.download = doc.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Close modal when clicking outside

@@ -411,6 +411,71 @@ document.addEventListener('DOMContentLoaded', function() {
         shkollaMesmeField.addEventListener('change', updateHighSchoolFields);
     }
     
+    // Document upload handling
+    const documentUploadInput = document.getElementById('dokumentetArsimit');
+    const uploadedDocumentsList = document.getElementById('uploadedDocumentsList');
+    let uploadedDocuments = [];
+    
+    if (documentUploadInput && uploadedDocumentsList) {
+        documentUploadInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`Skedari "${file.name}" është më i madh se 5MB. Ju lutem zgjidhni një skedar më të vogël.`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const documentData = {
+                        id: Date.now() + Math.random(),
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: event.target.result, // base64
+                        uploadDate: new Date().toISOString()
+                    };
+                    
+                    uploadedDocuments.push(documentData);
+                    updateDocumentsList();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+    
+    function updateDocumentsList() {
+        if (!uploadedDocumentsList) return;
+        
+        if (uploadedDocuments.length === 0) {
+            uploadedDocumentsList.innerHTML = '';
+            return;
+        }
+        
+        uploadedDocumentsList.innerHTML = uploadedDocuments.map((doc, index) => {
+            const sizeKB = (doc.size / 1024).toFixed(2);
+            return `
+                <div class="uploaded-document-item" data-index="${index}">
+                    <span class="document-icon">📄</span>
+                    <span class="document-name">${doc.name}</span>
+                    <span class="document-size">(${sizeKB} KB)</span>
+                    <button type="button" class="remove-document-btn" onclick="removeDocument(${index})" title="Hiq dokumentin">×</button>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    window.removeDocument = function(index) {
+        uploadedDocuments.splice(index, 1);
+        updateDocumentsList();
+        // Reset file input
+        if (documentUploadInput) {
+            documentUploadInput.value = '';
+        }
+    };
+    
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem('applicantLoggedIn');
     const loggedInEmail = localStorage.getItem('applicantEmail');
@@ -549,6 +614,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 applicationData.formData[element.name] = element.value || '';
             }
         }
+    }
+    
+    // Add uploaded documents to applicationData
+    if (uploadedDocuments && uploadedDocuments.length > 0) {
+        applicationData.documents = uploadedDocuments;
     }
     
     // Save application to localStorage
