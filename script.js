@@ -108,6 +108,9 @@ function openApplicationForm(type) {
     }
 }
 
+// Make it available globally
+window.openApplicationForm = openApplicationForm;
+
 // Benefit Modal Data
 window.benefitData = [
     {
@@ -246,6 +249,136 @@ window.addEventListener('click', function(event) {
         window.closeWhyApplyModal();
     }
 });
+
+// Benefit Accordion Toggle Function
+window.toggleBenefit = function(element) {
+    const isActive = element.classList.contains('active');
+    const allBenefits = document.querySelectorAll('.benefit-item');
+    
+    // Close all other benefits
+    allBenefits.forEach(item => {
+        if (item !== element) {
+            item.classList.remove('active');
+        }
+    });
+    
+    // Toggle current benefit
+    element.classList.toggle('active', !isActive);
+};
+
+// Load Benefits from localStorage
+function loadBenefitsFromStorage() {
+    const defaultBenefits = [
+        {
+            title: 'Përse duhet të bëheni pjesë e FA',
+            items: [
+                'Karrierë prestigjioze dhe e paguar mirë',
+                'Sigurim shëndetësor i plotë për ty dhe familjen',
+                'Mundësi për edukim dhe trajnime të vazhdueshme',
+                'Pension i garantuar pas shërbimit',
+                'Respekt dhe nderim nga shoqëria',
+                'Komunitet i fortë dhe mbështetës',
+                'Mundësi për zhvillim profesional dhe personal',
+                'Kontribut për sigurinë dhe mbrojtjen e vendit'
+            ]
+        },
+        {
+            title: 'Paga',
+            items: [
+                'Paga konkurruese që rritet me kohën dhe eksperiencën',
+                'Shtesa për shërbim në misione dhe operacione',
+                'Bonuse për performancë të shkëlqyer',
+                'Paga e garantuar çdo muaj',
+                'Rritje automatike bazuar në gradë dhe vite shërbimi',
+                'Paga shtesë për detyra speciale',
+                'Kompenzim për orët jashtë orarit'
+            ]
+        },
+        {
+            title: 'Trajtimi',
+            items: [
+                'Trajtim shëndetësor falas në spitalet ushtarake',
+                'Kontrollime mjekësore periodike',
+                'Trajtim për familjen nëpërmjet sigurimeve',
+                'Akses në specialistë mjekësorë',
+                'Medikamente dhe ilaçe të mbuluara',
+                'Trajtim dentar i plotë',
+                'Programe parandaluese dhe kontrolli shëndetësor',
+                'Mbështetje psikologjike dhe konsultime'
+            ]
+        },
+        {
+            title: 'Statusi i ushtarakut',
+            items: [
+                'Status i veçantë dhe i respektuar në shoqëri',
+                'Përfitime ligjore dhe privilegje të veçanta',
+                'Prioritet në shërbimet publike',
+                'Mundësi për promovim dhe karrierë',
+                'Njohje zyrtare e statusit ushtarak',
+                'Mundësi për pjesëmarrje në misione ndërkombëtare',
+                'Dekorata dhe medalje për shërbim të shkëlqyer',
+                'Respekt dhe nderim nga komandat dhe kolegët'
+            ]
+        },
+        {
+            title: 'Edukim dhe Trajnime',
+            items: [
+                'Akses në Akademinë e Forcave të Armatosura',
+                'Mundësi për studime universitare me bursë',
+                'Trajnime specializuese në teknologji dhe strategji',
+                'Kurse në gjuhë të huaja (anglisht, gjuhë të tjera)',
+                'Certifikime profesionale të njohura',
+                'Mundësi për studime jashtë vendit',
+                'Zhvillim i vazhdueshëm i njohurive dhe aftësive'
+            ]
+        },
+        {
+            title: 'Pension dhe Sigurime',
+            items: [
+                'Pension i garantuar pas shërbimit',
+                'Sigurime shëndetësore për jetën e plotë',
+                'Sigurime për familjen pas vdekjes',
+                'Fond pensioni ushtarak i veçantë',
+                'Mundësi për pension të hershëm në raste të veçanta',
+                'Mbështetje financiare për familjen',
+                'Sigurime për invaliditet dhe aksidente'
+            ]
+        }
+    ];
+
+    const savedBenefits = JSON.parse(localStorage.getItem('benefitsData') || 'null');
+    const benefits = savedBenefits || defaultBenefits;
+    
+    const benefitsList = document.querySelector('.benefits-list-footer');
+    if (!benefitsList) return;
+    
+    benefitsList.innerHTML = '';
+    
+    benefits.forEach((benefit, index) => {
+        const li = document.createElement('li');
+        li.className = 'benefit-item';
+        li.setAttribute('onclick', 'toggleBenefit(this)');
+        li.innerHTML = `
+            <div class="benefit-header">
+                <span class="benefit-title">${benefit.title}</span>
+                <span class="benefit-arrow">►</span>
+            </div>
+            <div class="benefit-content">
+                <ul>
+                    ${benefit.items.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        benefitsList.appendChild(li);
+    });
+}
+
+// Load benefits when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadBenefitsFromStorage);
+} else {
+    loadBenefitsFromStorage();
+}
 
 // Why Apply Modal Functions
 window.openWhyApplyModal = function() {

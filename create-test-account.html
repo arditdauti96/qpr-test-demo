@@ -97,6 +97,37 @@
     </div>
 
     <script>
+        function formatDateForDisplay(value) {
+            if (!value) return '';
+            
+            if (value instanceof Date) {
+                const day = value.getDate().toString().padStart(2, '0');
+                const month = (value.getMonth() + 1).toString().padStart(2, '0');
+                const year = value.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+            
+            if (typeof value === 'string') {
+                const displayMatch = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                if (displayMatch) {
+                    return value;
+                }
+                
+                const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (isoMatch) {
+                    const [, year, month, day] = isoMatch;
+                    return `${day}-${month}-${year}`;
+                }
+                
+                const parsed = Date.parse(value);
+                if (!isNaN(parsed)) {
+                    return formatDateForDisplay(new Date(parsed));
+                }
+            }
+            
+            return value;
+        }
+
         function createTestAccount() {
             const email = 'test@qpr.al';
             const password = 'test123';
@@ -125,16 +156,17 @@
             applications = applications.filter(app => app.email !== email);
             
             // Create first test application (pending)
+            const firstSubmittedDate = formatDateForDisplay(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
             const app1 = {
                 id: 'APP-' + Date.now() + '-1',
                 type: 'Ushtar Aktiv',
                 email: email,
                 status: 'pending',
-                submittedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString('sq-AL'),
+                submittedDate: firstSubmittedDate,
                 personalData: {
                     firstName: 'Agron',
                     lastName: 'Krasniqi',
-                    birthDate: '1995-05-15',
+                    birthDate: formatDateForDisplay('1995-05-15'),
                     placeOfBirth: 'Tiranë',
                     address: 'Rruga Dritan Hoxha, Nr. 12, Tiranë',
                     phone: '+355692123456',
@@ -154,16 +186,17 @@
             };
             
             // Create second test application (reviewed)
+            const secondSubmittedDate = formatDateForDisplay(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000));
             const app2 = {
                 id: 'APP-' + Date.now() + '-2',
                 type: 'Oficer - Akademi',
                 email: email,
                 status: 'reviewed',
-                submittedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString('sq-AL'),
+                submittedDate: secondSubmittedDate,
                 personalData: {
                     firstName: 'Agron',
                     lastName: 'Krasniqi',
-                    birthDate: '1995-05-15',
+                    birthDate: formatDateForDisplay('1995-05-15'),
                     placeOfBirth: 'Tiranë',
                     address: 'Rruga Dritan Hoxha, Nr. 12, Tiranë',
                     phone: '+355692123456',

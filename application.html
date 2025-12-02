@@ -15,11 +15,11 @@
                     <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
                 </a>
                 <div style="display: flex; gap: 15px; align-items: center;">
-                    <a href="login.html" class="login-link">
+                    <a href="login.html" class="login-link" id="loginButton" onclick="checkLoginStatus(event)">
                         Login
                         <span class="login-arrow">→</span>
                     </a>
-                    <a href="qpr-login.html" class="login-link" style="font-size: 14px; padding: 8px 15px;">
+                    <a href="qpr-login.html" class="login-link" style="background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.4);">
                         Panel QPR
                         <span class="login-arrow">→</span>
                     </a>
@@ -31,43 +31,89 @@
     <!-- Main Content -->
     <main class="main-content application-page">
         <div class="container">
-            <div class="application-layout with-poster">
+            <!-- Page Title Section -->
+            <div class="application-page-header">
+                <h2 class="application-page-title">Zgjidhni Llojin e Aplikimit</h2>
+                <p class="application-page-subtitle">Zgjidhni një nga opsionet më poshtë për të filluar procesin e aplikimit</p>
+            </div>
+
+            <div class="application-layout-new">
                 <!-- Left Column: Application Options -->
-                <div class="application-menu">
-                    <div class="application-option" onclick="openApplicationForm('ushtar-detar')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për ushtar ose detar aktiv</span>
+                <div class="application-menu-new">
+                    <div class="application-option-new" onclick="openApplicationForm('ushtar-detar')">
+                        <div class="option-icon">⚔️</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Ushtar ose Detar Aktiv</h3>
+                            <p class="option-description">Apliko për pozicion ushtar ose detar aktiv në Forcat e Armatosura</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
-                    <div class="application-option" onclick="openApplicationForm('oficer-akademi')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për oficer, studime në Akademinë e Forcave të Armatosura</span>
+
+                    <div class="application-option-new" onclick="openApplicationForm('oficer-akademi')">
+                        <div class="option-icon">🎓</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Oficer - Akademia e Forcave</h3>
+                            <p class="option-description">Apliko për studime në Akademinë e Forcave të Armatosura</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
-                    <div class="application-option" onclick="openApplicationForm('oficer-jasht')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për oficer, studime jashtë vendit</span>
+
+                    <div class="application-option-new" onclick="openApplicationForm('oficer-jasht')">
+                        <div class="option-icon">🌍</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Oficer - Studime Jashtë Vendit</h3>
+                            <p class="option-description">Apliko për studime jashtë vendit për pozicion oficer</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
-                    <div class="application-option" onclick="openApplicationForm('ushtar-rezervist')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për ushtar rezervist</span>
+
+                    <div class="application-option-new" onclick="openApplicationForm('ushtar-rezervist')">
+                        <div class="option-icon">🛡️</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Ushtar Rezervist</h3>
+                            <p class="option-description">Apliko për pozicion ushtar rezervist</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
-                    <div class="application-option" onclick="openApplicationForm('nenoficer-rezervist')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për nënoficer rezervist</span>
+
+                    <div class="application-option-new" onclick="openApplicationForm('nenoficer-rezervist')">
+                        <div class="option-icon">⭐</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Nënoficer Rezervist</h3>
+                            <p class="option-description">Apliko për pozicion nënoficer rezervist</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
-                    <div class="application-option" onclick="openApplicationForm('oficer-rezervist')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për oficer rezervist</span>
+
+                    <div class="application-option-new" onclick="openApplicationForm('oficer-rezervist')">
+                        <div class="option-icon">🎖️</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Oficer Rezervist</h3>
+                            <p class="option-description">Apliko për pozicion oficer rezervist</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
-                    <div class="application-option" onclick="openApplicationForm('civil')">
-                        <span class="option-bullet">•</span>
-                        <span class="option-text">Apliko për civil në FA</span>
+
+                    <div class="application-option-new" onclick="openApplicationForm('civil')">
+                        <div class="option-icon">👔</div>
+                        <div class="option-content">
+                            <h3 class="option-title">Civil në Forcat e Armatosura</h3>
+                            <p class="option-description">Apliko për pozicion civil në Forcat e Armatosura</p>
+                        </div>
+                        <div class="option-arrow">→</div>
                     </div>
                 </div>
 
-                <!-- Right Column: Static Poster -->
-                <div class="application-poster-section">
-                    <div class="application-poster-frame">
-                        <img src="images/versioni_yt_1a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="application-poster">
+                <!-- Right Column: Poster -->
+                <div class="application-poster-section-new">
+                    <div class="application-poster-frame-new">
+                        <img src="images/versioni_yt_1a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="application-poster-new">
+                        <div class="poster-overlay">
+                            <div class="poster-content">
+                                <h3 class="poster-title">BËHU VERSIONI YT MË I MIRË!</h3>
+                                <p class="poster-subtitle">Bëhu pjesë e Forcave të Armatosura për një karrierë unike</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,26 +161,6 @@
         </div>
     </footer>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeLogin()">&times;</span>
-            <h2>Kyçu në Sistem</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">Përdoruesi:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Fjalëkalimi:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <button type="submit" class="submit-btn">Kyçu</button>
-            </form>
-        </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
-

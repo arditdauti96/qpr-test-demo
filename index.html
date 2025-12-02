@@ -32,97 +32,201 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <!-- Main Title -->
-            <div class="main-title-section">
-                <h1 class="main-title">Forcat e Armatosura të Shqipërisë</h1>
-            </div>
-
-            <!-- Recruitment Info Section -->
-            <div class="recruitment-info">
-                <div class="logo-section">
-                    <button class="logo-item" onclick="window.location.href='application.html'">
-                        <div class="circular-logo">
-                            <div class="logo-circle">
-                                <div class="eagle-icon">🦅</div>
+            <!-- Hero Banner Section -->
+            <div class="hero-banner">
+                <div class="hero-content">
+                    <h1 class="hero-title">Forcat e Armatosura të Shqipërisë</h1>
+                    <p class="hero-subtitle">Bëhu pjesë e një tradite të lavdishme. Shërbej vendin tënd me krenari dhe fito një karrierë prestigjioze me përfitime konkurruese.</p>
+                    <p class="hero-description">Qendra e Personel Rekrutimit ju fton të aplikoni për pozicione të ndryshme në Forcat e Armatosura. Zgjidhni rrugën tuaj dhe filloni karrierën tuaj ushtarake sot!</p>
+                    
+                    <!-- Apply Now Button -->
+                    <div class="apply-now-section">
+                        <button class="apply-now-btn" onclick="window.location.href='application.html'">
+                            <div class="apply-icon-circle">
+                                <div class="apply-icon">🦅</div>
                             </div>
-                        </div>
-                        <div class="logo-text-content">
-                            <h2 class="recruitment-title">APLIKO TANI</h2>
-                            <p class="recruitment-subtitle">Fillo procesin e aplikimit për Forcat e Armatosura</p>
-                        </div>
-                    </button>
-
-                    <button class="logo-item why-apply-button-inline" onclick="window.openWhyApplyModal()">
-                        <div class="circular-logo">
-                            <div class="logo-circle">
-                                <div class="eagle-icon">💼</div>
+                            <div class="apply-text-content">
+                                <span class="apply-main-text">APLIKO TANI</span>
                             </div>
-                        </div>
-                        <div class="logo-text-content">
-                            <h2 class="recruitment-title">Pse të aplikosh?</h2>
-                            <p class="recruitment-subtitle">Një karrierë prestigjioze dhe e paguar mirë po të pret</p>
-                        </div>
-                    </button>
-
-                    <button class="logo-item why-apply-button-inline" onclick="window.openFaqModal('kerkesat')">
-                        <div class="circular-logo">
-                            <div class="logo-circle">
-                                <div class="eagle-icon">📋</div>
-                            </div>
-                        </div>
-                        <div class="logo-text-content">
-                            <h2 class="recruitment-title">Kërkesat Bazë</h2>
-                            <p class="recruitment-subtitle">Shiko të gjitha kërkesat bazë për aplikim</p>
-                        </div>
-                    </button>
-
-                    <button class="logo-item why-apply-button-inline" onclick="window.openFaqModal('procedurat')">
-                        <div class="circular-logo">
-                            <div class="logo-circle">
-                                <div class="eagle-icon">📝</div>
-                            </div>
-                        </div>
-                        <div class="logo-text-content">
-                            <h2 class="recruitment-title">Procedurat e Aplikimit</h2>
-                            <p class="recruitment-subtitle">Mëso më shumë rreth procedurave të aplikimit</p>
-                        </div>
-                    </button>
-
-                    <button class="logo-item why-apply-button-inline" onclick="window.openFaqModal('procesi')">
-                        <div class="circular-logo">
-                            <div class="logo-circle">
-                                <div class="eagle-icon">⚙️</div>
-                            </div>
-                        </div>
-                        <div class="logo-text-content">
-                            <h2 class="recruitment-title">Procesi i Rekrutimit</h2>
-                            <p class="recruitment-subtitle">Informohu për procesin e plotë të rekrutimit</p>
-                        </div>
-                    </button>
+                        </button>
+                    </div>
                 </div>
-
-                <!-- Carousel Section -->
-                <div class="carousel-section">
-                    <div class="carousel-container">
-                        <div class="carousel-wrapper">
-                            <!-- Slide 1: First Poster -->
-                            <div class="carousel-slide active">
-                                <div class="carousel-content">
-                                    <div class="carousel-image-container">
-                                        <img src="images/versioni_yt_1a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="carousel-image">
+            </div>
+            
+            <!-- Three Column Layout -->
+            <div class="three-column-layout">
+                <!-- Left Column: Carousel and Benefits -->
+                <div class="left-column">
+                    <!-- Carousel Section -->
+                    <div class="carousel-box">
+                        <div class="carousel-section">
+                            <div class="carousel-container">
+                                <div class="carousel-wrapper">
+                                    <!-- Slide 1: First Poster -->
+                                    <div class="carousel-slide active">
+                                        <div class="carousel-content">
+                                            <div class="carousel-image-container">
+                                                <img src="images/versioni_yt_1a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="carousel-image">
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            <!-- Slide 2: Second Poster -->
-                            <div class="carousel-slide">
-                                <div class="carousel-content">
-                                    <div class="carousel-image-container">
-                                        <img src="images/versioni_yt_2a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="carousel-image">
+                                    <!-- Slide 2: Second Poster -->
+                                    <div class="carousel-slide">
+                                        <div class="carousel-content">
+                                            <div class="carousel-image-container">
+                                                <img src="images/versioni_yt_2a.jpg" alt="Rekrutim - Versioni Yt Më i Mirë" class="carousel-image">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                </div>
+
+                <!-- Middle Column: Application Types -->
+                <div class="middle-column">
+                    <div class="application-buttons">
+                        <button class="app-btn app-btn-orange" onclick="openApplicationForm('ushtar-detar')">
+                            <span class="app-text">Aplikim për ushtar/detar</span>
+                        </button>
+                        <button class="app-btn app-btn-yellow" onclick="openApplicationForm('oficer-jasht')">
+                            <span class="app-text">Aplikim për Oficer Studime jashtë vendit</span>
+                        </button>
+                        <button class="app-btn app-btn-blue" onclick="openApplicationForm('oficer-akademi')">
+                            <span class="app-text">Aplikim për oficer Studime Brenda vendit</span>
+                        </button>
+                        <button class="app-btn app-btn-grey" onclick="openApplicationForm('ushtar-rezervist')">
+                            <span class="app-text">Aplikim për ushtarak Rezervist</span>
+                        </button>
+                        <button class="app-btn app-btn-green" onclick="openApplicationForm('civil')">
+                            <span class="app-text">Aplikim për civil</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Recruitment Poster Image -->
+                <div class="right-column">
+                    <div class="map-poster-container">
+                        <img src="images/Picture1.jpg" alt="Poster Rekrutimi - Kontaktoni - Numrat e Rekrutimit" class="map-poster-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Benefits Footer Section -->
+        <div class="benefits-footer-section">
+            <div class="container">
+                <div class="benefits-box-footer">
+                    <h3 class="benefits-title-footer">PËRFITIMET (BENEFITET)</h3>
+                    <ul class="benefits-list-footer">
+                        <li class="benefit-item" onclick="toggleBenefit(this)">
+                            <div class="benefit-header">
+                                <span class="benefit-title">Përse duhet të bëheni pjesë e FA</span>
+                                <span class="benefit-arrow">►</span>
+                            </div>
+                            <div class="benefit-content">
+                                <ul>
+                                    <li>Karrierë prestigjioze dhe e paguar mirë</li>
+                                    <li>Sigurim shëndetësor i plotë për ty dhe familjen</li>
+                                    <li>Mundësi për edukim dhe trajnime të vazhdueshme</li>
+                                    <li>Pension i garantuar pas shërbimit</li>
+                                    <li>Respekt dhe nderim nga shoqëria</li>
+                                    <li>Komunitet i fortë dhe mbështetës</li>
+                                    <li>Mundësi për zhvillim profesional dhe personal</li>
+                                    <li>Kontribut për sigurinë dhe mbrojtjen e vendit</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="benefit-item" onclick="toggleBenefit(this)">
+                            <div class="benefit-header">
+                                <span class="benefit-title">Paga</span>
+                                <span class="benefit-arrow">►</span>
+                            </div>
+                            <div class="benefit-content">
+                                <ul>
+                                    <li>Paga konkurruese që rritet me kohën dhe eksperiencën</li>
+                                    <li>Shtesa për shërbim në misione dhe operacione</li>
+                                    <li>Bonuse për performancë të shkëlqyer</li>
+                                    <li>Paga e garantuar çdo muaj</li>
+                                    <li>Rritje automatike bazuar në gradë dhe vite shërbimi</li>
+                                    <li>Paga shtesë për detyra speciale</li>
+                                    <li>Kompenzim për orët jashtë orarit</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="benefit-item" onclick="toggleBenefit(this)">
+                            <div class="benefit-header">
+                                <span class="benefit-title">Trajtimi</span>
+                                <span class="benefit-arrow">►</span>
+                            </div>
+                            <div class="benefit-content">
+                                <ul>
+                                    <li>Trajtim shëndetësor falas në spitalet ushtarake</li>
+                                    <li>Kontrollime mjekësore periodike</li>
+                                    <li>Trajtim për familjen nëpërmjet sigurimeve</li>
+                                    <li>Akses në specialistë mjekësorë</li>
+                                    <li>Medikamente dhe ilaçe të mbuluara</li>
+                                    <li>Trajtim dentar i plotë</li>
+                                    <li>Programe parandaluese dhe kontrolli shëndetësor</li>
+                                    <li>Mbështetje psikologjike dhe konsultime</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="benefit-item" onclick="toggleBenefit(this)">
+                            <div class="benefit-header">
+                                <span class="benefit-title">Statusi i ushtarakut</span>
+                                <span class="benefit-arrow">►</span>
+                            </div>
+                            <div class="benefit-content">
+                                <ul>
+                                    <li>Status i veçantë dhe i respektuar në shoqëri</li>
+                                    <li>Përfitime ligjore dhe privilegje të veçanta</li>
+                                    <li>Prioritet në shërbimet publike</li>
+                                    <li>Mundësi për promovim dhe karrierë</li>
+                                    <li>Njohje zyrtare e statusit ushtarak</li>
+                                    <li>Mundësi për pjesëmarrje në misione ndërkombëtare</li>
+                                    <li>Dekorata dhe medalje për shërbim të shkëlqyer</li>
+                                    <li>Respekt dhe nderim nga komandat dhe kolegët</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="benefit-item" onclick="toggleBenefit(this)">
+                            <div class="benefit-header">
+                                <span class="benefit-title">Edukim dhe Trajnime</span>
+                                <span class="benefit-arrow">►</span>
+                            </div>
+                            <div class="benefit-content">
+                                <ul>
+                                    <li>Akses në Akademinë e Forcave të Armatosura</li>
+                                    <li>Mundësi për studime universitare me bursë</li>
+                                    <li>Trajnime specializuese në teknologji dhe strategji</li>
+                                    <li>Kurse në gjuhë të huaja (anglisht, gjuhë të tjera)</li>
+                                    <li>Certifikime profesionale të njohura</li>
+                                    <li>Mundësi për studime jashtë vendit</li>
+                                    <li>Zhvillim i vazhdueshëm i njohurive dhe aftësive</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="benefit-item" onclick="toggleBenefit(this)">
+                            <div class="benefit-header">
+                                <span class="benefit-title">Pension dhe Sigurime</span>
+                                <span class="benefit-arrow">►</span>
+                            </div>
+                            <div class="benefit-content">
+                                <ul>
+                                    <li>Pension i garantuar pas shërbimit</li>
+                                    <li>Sigurime shëndetësore për jetën e plotë</li>
+                                    <li>Sigurime për familjen pas vdekjes</li>
+                                    <li>Fond pensioni ushtarak i veçantë</li>
+                                    <li>Mundësi për pension të hershëm në raste të veçanta</li>
+                                    <li>Mbështetje financiare për familjen</li>
+                                    <li>Sigurime për invaliditet dhe aksidente</li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>

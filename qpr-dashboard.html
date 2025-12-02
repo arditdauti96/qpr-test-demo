@@ -82,6 +82,10 @@
                     <span class="tab-icon">📊</span>
                     <span class="tab-text">Statistikat</span>
                 </button>
+                <button class="tab-btn" onclick="switchTab('benefits')">
+                    <span class="tab-icon">⭐</span>
+                    <span class="tab-text">Përfitimet</span>
+                </button>
             </div>
 
             <!-- Applications Tab -->
@@ -149,6 +153,35 @@
                     <h3 class="section-title">Statistikat e Detajuara</h3>
                     <div class="stats-grid" id="detailedStats">
                         <!-- Statistikat do të shfaqen këtu -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefits Tab -->
+            <div id="benefitsTab" class="tab-content">
+                <div class="benefits-edit-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Editim i Përfitimeve</h3>
+                        <p class="section-description">Redaktoni tekstet e seksionit të përfitimeve në faqen kryesore</p>
+                    </div>
+
+                    <div class="benefits-edit-container">
+                        <div class="add-benefit-section">
+                            <button class="add-benefit-category-btn" onclick="addNewBenefitCategory()">
+                                ➕ Shto Kategori të Re
+                            </button>
+                        </div>
+                        <div id="benefitsEditForm">
+                            <!-- Benefits will be loaded here -->
+                        </div>
+                        <div class="form-actions">
+                            <button class="save-btn" onclick="saveBenefits()">
+                                💾 Ruaj Ndryshimet
+                            </button>
+                            <button class="reset-btn" onclick="resetBenefits()">
+                                🔄 Rivendos në Default
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -285,6 +318,8 @@
             
             if (tabName === 'stats') {
                 loadDetailedStats();
+            } else if (tabName === 'benefits') {
+                loadBenefitsEditor();
             }
         }
 
@@ -667,6 +702,30 @@
                 `;
             }
             
+            // Acceptance Form PDF (if approved)
+            if (app.status === 'approved') {
+                const fileName = `Formulari_Pranimit_${app.id || Date.now()}.pdf`;
+                detailsHTML += `
+                    <div class="detail-section">
+                        <h3 class="detail-title">Formulari i Pranimit</h3>
+                        <div class="documents-section">
+                            <div class="document-card">
+                                <div class="document-card-header">
+                                    <span class="document-icon">📄</span>
+                                    <span class="document-card-name">${fileName}</span>
+                                </div>
+                                <div class="document-card-info">
+                                    <span class="document-card-size">PDF</span>
+                                    <button class="download-document-btn" onclick="downloadAcceptancePdf(${index})">
+                                        <span>⬇</span> Shkarko
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             detailsDiv.innerHTML = detailsHTML;
             
             // Action buttons
@@ -767,6 +826,26 @@
             document.body.removeChild(link);
         }
 
+        function downloadAcceptancePdf(appIndex) {
+            const app = window.allApplications[appIndex];
+            if (!app) {
+                alert('Aplikimi nuk u gjet!');
+                return;
+            }
+            
+            if (app.status !== 'approved') {
+                alert('Ky aplikim nuk është aprovuar ende!');
+                return;
+            }
+            
+            try {
+                generateAcceptancePdf(app);
+            } catch (error) {
+                console.error('Failed to generate acceptance PDF:', error);
+                alert('Gabim në gjenerimin e PDF-së. Ju lutem provoni përsëri.');
+            }
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('applicationModal');
@@ -814,77 +893,513 @@
             
             const personal = app.personalData || {};
             const formData = app.formData || {};
-            const firstName = personal.firstName || '';
-            const lastName = personal.lastName || '';
+            const firstName = personal.firstName || formData.emri || '';
+            const lastName = personal.lastName || formData.mbiemri || '';
             const fatherName = formData.atesia || '';
             const dob = formatDateForDisplay(personal.birthDate || formData.datelindja) || '';
             const pob = personal.placeOfBirth || formData.vendlindja || '';
             const residence = personal.address || formData.vendbanimi || '';
             const idNumber = formData.nrPersonal || '';
             
+            // PAGE 1 - Header (matching the official form exactly)
+            // Space for coat of arms at top (approximately 15mm)
+            let y = 25;
+            
+            // Republic and Ministry header
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
-            doc.text('FORMULAR I PRANIMIT', 105, 15, { align: 'center' });
-            doc.text('TË DOKUMENTACIONIT TË APLIKANTIT PËR USHTAR/DETAR AKTIV', 105, 22, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text('REPUBLIKA E SHQIPËRISË', 105, y, { align: 'center' });
+            y += 7;
             
+            doc.setFontSize(10);
+            doc.text('MINISTRIA E MBROJTJES', 105, y, { align: 'center' });
+            y += 10;
+            
+            // Title - centered
             doc.setFontSize(11);
-            let y = 32;
+            doc.setFont('helvetica', 'bold');
+            doc.text('FORMULAR I PRANIMIT TË DOKUMENTACIONIT', 105, y, { align: 'center' });
+            y += 6;
+            doc.text('TË APLIKANTIT PËR USHTAR/DETAR AKTIV', 105, y, { align: 'center' });
+            y += 12;
             
-            y = addBlockText(doc, 'I. TË DHËNA PERSONALE:', y, { fontStyle: 'bold' });
-            y = addBlockText(doc, `• Emri: ${firstName}      Atësia: ${fatherName}      Mbiemri: ${lastName}`, y);
-            y = addBlockText(doc, `• Datëlindja: ${dob}      Vendlindja: ${pob}      Vendbanimi: ${residence}`, y);
-            y = addBlockText(doc, `• Numri i Kartës së identitetit: ${idNumber}`, y);
+            doc.setFontSize(10);
             
-            y = addBlockText(doc, '', y);
-            y = addBlockText(doc, 'II. VERIFIKIMI I DOKUMENTACIONIT.', y, { fontStyle: 'bold' });
-            y = addBlockText(doc, 'Specialistët e Seksionit të Rekrutimit, pranë QPR, pasi verifikuan pyetësorin e aplikimit për ushtar/detarë aktivë, të plotësuar nga aplikanti, si dhe dokumentacionin e dorëzuar nga ana e tij, vërejnë se:', y);
+            // Section I: Personal Data
+            doc.setFont('helvetica', 'bold');
+            doc.text('I. TË DHËNA PERSONALE:', 14, y);
+            y += 8;
             
-            const blankLine = '________________________________________________________________________________';
-            y = addBlockText(doc, '☐  Aplikanti ka dorëzuar dokumentacionin e kërkuar sipas kërkesave të udhëzimit.', y);
-            y = addBlockText(doc, '☐  Aplikanti nuk ka dorëzuar:______________________________________________', y);
-            y = addBlockText(doc, blankLine, y);
-            y = addBlockText(doc, '☐  Aplikanti plotëson kriteret për vijimin e procedurave të testimit.', y);
-            y = addBlockText(doc, '☐  Aplikanti nuk plotëson kriteret për vijimin e procedurave të testimit.', y);
-            y = addBlockText(doc, blankLine, y);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
             
-            y = addBlockText(doc, `Me qëllim vijimin e procedurave të testimit, bashkëlidhur ju dërgojmë dokumentacionin e dorëzuar nga aplikanti ${firstName} ${fatherName} ${lastName}, si më poshtë:`, y + 4);
+            // First line: Emri, Atësia, Mbiemri with long dotted lines
+            doc.text('• Emri', 14, y);
+            // Long dotted line for Emri
+            doc.setLineDash([1, 1.5], 0);
+            doc.setLineWidth(0.3);
+            const emriLineStart = 32;
+            const emriLineEnd = 58;
+            doc.line(emriLineStart, y - 2, emriLineEnd, y - 2);
+            if (firstName) {
+                doc.text(firstName, emriLineStart + 1, y);
+            }
             
-            const docs = [
-                '1. Kërkesë me shkrim;',
-                '2. Fotokopje e Kartës së Identitetit;',
-                '3. Dy fotografi të përmasave 4x6;',
-                '4. Dy fotografi të përmasave 9x12;',
-                '5. Fotokopje e noterizuar e dëftesës/diplomës së shkollës/universitetit;',
-                '6. Fotokopje diplome/dëshmie/certifikate për aftësi profesionale të noterizuar (nëse ka);',
+            doc.text('Atësia', 62, y);
+            // Long dotted line for Atësia
+            const atesiaLineStart = 80;
+            const atesiaLineEnd = 106;
+            doc.line(atesiaLineStart, y - 2, atesiaLineEnd, y - 2);
+            if (fatherName) {
+                doc.text(fatherName, atesiaLineStart + 1, y);
+            }
+            
+            doc.text('Mbiemri', 110, y);
+            // Very long dotted line for Mbiemri (extends to end of page)
+            const mbiemriLineStart = 138;
+            const mbiemriLineEnd = 196;
+            doc.line(mbiemriLineStart, y - 2, mbiemriLineEnd, y - 2);
+            if (lastName) {
+                doc.text(lastName, mbiemriLineStart + 1, y);
+            }
+            doc.setLineDash([], 0); // Reset line style
+            y += 8;
+            
+            // Second line: Datëlindja, Vendlindja, Vendbanimi with dotted lines
+            doc.text('• Datëlindja', 14, y);
+            doc.setLineDash([1, 1.5], 0);
+            const datelindjaLineStart = 42;
+            const datelindjaLineEnd = 58;
+            doc.line(datelindjaLineStart, y - 2, datelindjaLineEnd, y - 2);
+            if (dob) {
+                doc.text(dob, datelindjaLineStart + 1, y);
+            }
+            
+            doc.text('Vendlindja', 62, y);
+            const vendlindjaLineStart = 90;
+            const vendlindjaLineEnd = 106;
+            doc.line(vendlindjaLineStart, y - 2, vendlindjaLineEnd, y - 2);
+            if (pob) {
+                doc.text(pob, vendlindjaLineStart + 1, y);
+            }
+            
+            doc.text('Vendbanimi', 110, y);
+            const vendbanimiLineStart = 148;
+            const vendbanimiLineEnd = 196;
+            doc.line(vendbanimiLineStart, y - 2, vendbanimiLineEnd, y - 2);
+            if (residence) {
+                const residenceLines = doc.splitTextToSize(residence, 45);
+                doc.text(residenceLines[0], vendbanimiLineStart + 1, y);
+            }
+            doc.setLineDash([], 0);
+            y += 8;
+            
+            // Third line: Numri i Kartës së identitetit with very long dotted line
+            doc.text('• Numri i Kartës së identitetit', 14, y);
+            doc.setLineDash([1, 1.5], 0);
+            const idLineStart = 75;
+            const idLineEnd = 196;
+            doc.line(idLineStart, y - 2, idLineEnd, y - 2);
+            if (idNumber) {
+                doc.text(idNumber, idLineStart + 1, y);
+            }
+            doc.setLineDash([], 0);
+            y += 12;
+            
+            // Section II: Document Verification
+            doc.setFont('helvetica', 'bold');
+            doc.text('II. VERIFIKIMI I DOKUMANTACIONIT', 14, y);
+            y += 7;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            const verifyText = 'Specialistët e Seksionit të Rekrutimit, pranë QPR, pasi verifikuan pyetësorin e aplikimit për ushtar/detarë aktivë, të plotësuar nga aplikanti, si dhe dokumentacionin e dorëzuar nga ana e tij, vërejnë se:';
+            const verifyLines = doc.splitTextToSize(verifyText, 180);
+            verifyLines.forEach(line => {
+                doc.text(line, 14, y);
+                y += 5;
+            });
+            y += 2;
+            
+            // Checkboxes with ☐ symbol
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('☐', 14, y);
+            const text1 = 'Aplikanti ka dorëzuar dokumentacionin e kërkuar sipas kërkesave të udhëzimit.';
+            doc.text(text1, 20, y);
+            // Draw long blank line after text
+            doc.setLineDash([1, 1], 0);
+            doc.setLineWidth(0.3);
+            const line1End = doc.getTextWidth(text1);
+            doc.line(20 + line1End + 2, y - 2, 196, y - 2);
+            doc.setLineDash([], 0);
+            y += 6;
+            
+            doc.text('☐', 14, y);
+            doc.text('Aplikanti nuk ka dorëzuar:', 20, y);
+            y += 4;
+            // Draw long horizontal line for specification
+            doc.setLineDash([1, 1], 0);
+            doc.setLineWidth(0.3);
+            doc.line(14, y - 2, 196, y - 2);
+            doc.setLineDash([], 0);
+            y += 4;
+            doc.setFontSize(8);
+            doc.text('(specifikohet dokumentacioni që nuk ka paraqitur ose parregullsitë e vërejtura)', 14, y);
+            y += 6;
+            
+            doc.setFontSize(10);
+            doc.text('☐', 14, y);
+            const text3 = 'Aplikanti plotëson kriteret për vijimin e procedurave të testimit.';
+            doc.text(text3, 20, y);
+            // Draw long blank line after text
+            doc.setLineDash([1, 1], 0);
+            doc.setLineWidth(0.3);
+            const line3End = doc.getTextWidth(text3);
+            doc.line(20 + line3End + 2, y - 2, 196, y - 2);
+            doc.setLineDash([], 0);
+            y += 6;
+            
+            doc.text('☐', 14, y);
+            const text4 = 'Aplikanti nuk plotëson kriteret për vijimin e procedurave të testimit.';
+            doc.text(text4, 20, y);
+            // Draw long blank line after text
+            doc.setLineDash([1, 1], 0);
+            doc.setLineWidth(0.3);
+            const line4End = doc.getTextWidth(text4);
+            doc.line(20 + line4End + 2, y - 2, 196, y - 2);
+            doc.setLineDash([], 0);
+            y += 4;
+            // Draw long horizontal line for specification
+            doc.setLineDash([1, 1], 0);
+            doc.setLineWidth(0.3);
+            doc.line(14, y - 2, 196, y - 2);
+            doc.setLineDash([], 0);
+            y += 4;
+            doc.setFontSize(8);
+            doc.text('(specifikohen shkaqet e mosplotësimit të kritereve)', 14, y);
+            y += 8;
+            
+            // Follow-up paragraph
+            doc.setFontSize(9);
+            doc.text('Me qëllim vijimin e procedurave të testimit, bashkëlidhur ju dërgojmë dokumentacionin e dorëzuar nga aplikanti', 14, y);
+            y += 5;
+            // Draw horizontal line for applicant name
+            doc.line(14, y, 190, y);
+            y += 4;
+            doc.setFontSize(8);
+            doc.text('(Emër, Atësi, Mbiemër)', 14, y);
+            y += 5;
+            doc.setFontSize(9);
+            doc.text('si më poshtë:', 14, y);
+            y += 6;
+            
+            // Documents list (first 4 items on page 1)
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            const docsPage1 = [
+                '1. Kërkesë me shkrim',
+                '2. Fotokopje e Kartës së identitetit',
+                '3. Dy fotografi të përmasave 4x6,',
+                '4. Dy fotografi të përmasave 9x12;'
+            ];
+            
+            docsPage1.forEach(item => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(item, 14, y);
+                y += 6;
+            });
+            
+            // PAGE 2 - Continue documents list
+            doc.addPage();
+            y = 20;
+            
+            const docsPage2 = [
+                '5. Fotokopje e noterizuar dëftesës/ diplomës shkollës/universitetit.',
+                '6. Fotokopje diplome, dëshmi, certifikatë për aftësi profesionale të noterizuar (nëse ka).',
                 '7. Fotokopje patente për drejtim automjeti të noterizuar (nëse ka);',
-                '8. Dokument i qendrës shëndetësore të lëshuar nga mjeku i familjes;',
-                '9. Ekzaminime mjekësore për agjentët infektivë (Hepatit B, Hepatit C, HIV/AIDS, Sifiliz) dhe grupi i gjakut;',
+                '8. Dokument i qendrës shëndetësore të lëshuar nga mjeku i familjes.',
+                '9. Ekzaminimet mjekësore për agjentët infektivë (Hepatit B, Hepatit C, HIV/AIDS, Sifiliz) dhe grupin e gjakut;',
                 '10. Formularin e aplikimit për ushtar/detar aktiv;',
                 '11. Formularin e pranimit të dokumentacionit të aplikantit;',
-                '12. Formularin e vetëdeklarimit të gjendjes shëndetësore, Aneksi C;',
-                '13. Formularin e kushtit të sigurisë;',
+                '12. Formularin e vetëdeklarimit të gjendjes shëndetësore, Aneksi C.',
+                '13. Formularin i kushtit të sigurisë;',
                 '14. Dëshmi penaliteti;',
                 '15. Vërtetim gjykate;',
                 '16. Vërtetim Prokurorie.'
             ];
             
-            docs.forEach(item => {
-                y = addBlockText(doc, item, y);
+            docsPage2.forEach(item => {
+                doc.text(item, 14, y);
+                y += 6;
             });
             
-            y = addBlockText(doc, '', y);
-            y = addBlockText(doc, '         Specialisti i Rekrutimit                                 Aplikanti', y);
-            y = addBlockText(doc, '(___Gradë/Emër/Mbiemër/______)                (_______________________________)', y);
-            y = addBlockText(doc, '(Nënshkrimi)                                       (Emër  Mbiemër  Nënshkrimi)', y + 2);
+            y += 8;
             
-            y = ensurePageSpace(doc, y + 8, 20);
-            y = addBlockText(doc, 'Shënim: Dokumentacioni i aplikantit i plotësuar pranë QPR, së bashku me dokumentacionin e dorëzuar prej tij, është pjesë e pandarë e dosjes personale të kandidatit për ushtar/detar aktiv.', y);
+            // Signatures
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Specialisti i Rekrutimit', 14, y);
+            doc.text('Aplikanti', 140, y);
+            y += 6;
             
-            y = addBlockText(doc, 'Mora njoftim se: Duhet të paraqitem me veshje të rregullt në procedurat e testimit për rekrutim si ushtar/detar aktiv që do të zhvillohen në Qendrën e Personel Rekrutimit, Tiranë, më datën ____/____/2025.', y + 4);
-            y = addBlockText(doc, 'Tiranë, më ____/____/2025', y + 4);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.text('(Gradë Emër Mbiemër Nënshkrimi)', 14, y);
+            doc.text('(Emër Mbiemër Nënshkrimi)', 140, y);
+            y += 12;
+            
+            // Note
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Shënim:', 14, y);
+            y += 6;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            const noteText = 'Dokumentacioni i aplikantit i plotësuar pranë Qendrës së Personel Rekrutimit nga aplikanti, së bashku me dokumentacionin e dorëzuar prej tij, është pjesë e pandarë e dosjes personale të kandidatit për ushtar/detarë aktiv.';
+            const noteLines = doc.splitTextToSize(noteText, 180);
+            noteLines.forEach(line => {
+                doc.text(line, 14, y);
+                y += 4;
+            });
+            y += 6;
+            
+            // Notification
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('Njoftim: Data e testimit: ____.____.________', 14, y);
+            y += 10;
+            
+            // Date at bottom right
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text('Data: ____.____.________', 180, y, { align: 'right' });
             
             const fileName = `Formulari_Pranimit_${app.id || Date.now()}.pdf`;
             doc.save(fileName);
+        }
+        // Benefits Editor Functions
+        const defaultBenefits = [
+            {
+                title: 'Përse duhet të bëheni pjesë e FA',
+                items: [
+                    'Karrierë prestigjioze dhe e paguar mirë',
+                    'Sigurim shëndetësor i plotë për ty dhe familjen',
+                    'Mundësi për edukim dhe trajnime të vazhdueshme',
+                    'Pension i garantuar pas shërbimit',
+                    'Respekt dhe nderim nga shoqëria',
+                    'Komunitet i fortë dhe mbështetës',
+                    'Mundësi për zhvillim profesional dhe personal',
+                    'Kontribut për sigurinë dhe mbrojtjen e vendit'
+                ]
+            },
+            {
+                title: 'Paga',
+                items: [
+                    'Paga konkurruese që rritet me kohën dhe eksperiencën',
+                    'Shtesa për shërbim në misione dhe operacione',
+                    'Bonuse për performancë të shkëlqyer',
+                    'Paga e garantuar çdo muaj',
+                    'Rritje automatike bazuar në gradë dhe vite shërbimi',
+                    'Paga shtesë për detyra speciale',
+                    'Kompenzim për orët jashtë orarit'
+                ]
+            },
+            {
+                title: 'Trajtimi',
+                items: [
+                    'Trajtim shëndetësor falas në spitalet ushtarake',
+                    'Kontrollime mjekësore periodike',
+                    'Trajtim për familjen nëpërmjet sigurimeve',
+                    'Akses në specialistë mjekësorë',
+                    'Medikamente dhe ilaçe të mbuluara',
+                    'Trajtim dentar i plotë',
+                    'Programe parandaluese dhe kontrolli shëndetësor',
+                    'Mbështetje psikologjike dhe konsultime'
+                ]
+            },
+            {
+                title: 'Statusi i ushtarakut',
+                items: [
+                    'Status i veçantë dhe i respektuar në shoqëri',
+                    'Përfitime ligjore dhe privilegje të veçanta',
+                    'Prioritet në shërbimet publike',
+                    'Mundësi për promovim dhe karrierë',
+                    'Njohje zyrtare e statusit ushtarak',
+                    'Mundësi për pjesëmarrje në misione ndërkombëtare',
+                    'Dekorata dhe medalje për shërbim të shkëlqyer',
+                    'Respekt dhe nderim nga komandat dhe kolegët'
+                ]
+            },
+            {
+                title: 'Edukim dhe Trajnime',
+                items: [
+                    'Akses në Akademinë e Forcave të Armatosura',
+                    'Mundësi për studime universitare me bursë',
+                    'Trajnime specializuese në teknologji dhe strategji',
+                    'Kurse në gjuhë të huaja (anglisht, gjuhë të tjera)',
+                    'Certifikime profesionale të njohura',
+                    'Mundësi për studime jashtë vendit',
+                    'Zhvillim i vazhdueshëm i njohurive dhe aftësive'
+                ]
+            },
+            {
+                title: 'Pension dhe Sigurime',
+                items: [
+                    'Pension i garantuar pas shërbimit',
+                    'Sigurime shëndetësore për jetën e plotë',
+                    'Sigurime për familjen pas vdekjes',
+                    'Fond pensioni ushtarak i veçantë',
+                    'Mundësi për pension të hershëm në raste të veçanta',
+                    'Mbështetje financiare për familjen',
+                    'Sigurime për invaliditet dhe aksidente'
+                ]
+            }
+        ];
+
+        function loadBenefitsEditor() {
+            const savedBenefits = JSON.parse(localStorage.getItem('benefitsData') || 'null');
+            const benefits = savedBenefits || defaultBenefits;
+            
+            const formContainer = document.getElementById('benefitsEditForm');
+            formContainer.innerHTML = '';
+            
+            benefits.forEach((benefit, index) => {
+                const benefitCard = document.createElement('div');
+                benefitCard.className = 'benefit-edit-card';
+                benefitCard.innerHTML = `
+                    <div class="benefit-edit-header" onclick="toggleBenefitCard(${index})">
+                        <div class="benefit-title-edit-wrapper">
+                            <label class="benefit-title-label">Titulli:</label>
+                            <input type="text" 
+                                   class="benefit-title-input" 
+                                   value="${benefit.title.replace(/"/g, '&quot;')}" 
+                                   data-benefit="${index}"
+                                   onchange="updateBenefitTitle(${index}, this.value)"
+                                   onclick="event.stopPropagation()"
+                                   placeholder="Shkruani titullin e benefitit">
+                        </div>
+                        <div class="benefit-header-actions">
+                            <button class="add-item-btn" onclick="event.stopPropagation(); addBenefitItem(${index})">+ Shto Item</button>
+                            <button class="remove-category-btn" onclick="event.stopPropagation(); removeBenefitCategory(${index})" title="Fshi kategori">🗑️</button>
+                            <button class="toggle-card-btn" id="toggleBtn_${index}">▼</button>
+                        </div>
+                    </div>
+                    <div class="benefit-items-list collapsed" id="benefitItems_${index}">
+                        ${benefit.items.map((item, itemIndex) => `
+                            <div class="benefit-item-edit">
+                                <input type="text" 
+                                       class="benefit-item-input" 
+                                       value="${item.replace(/"/g, '&quot;')}" 
+                                       data-benefit="${index}" 
+                                       data-item="${itemIndex}"
+                                       onchange="updateBenefitItem(${index}, ${itemIndex}, this.value)">
+                                <button class="remove-item-btn" onclick="removeBenefitItem(${index}, ${itemIndex})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                formContainer.appendChild(benefitCard);
+            });
+        }
+
+        function updateBenefitTitle(benefitIndex, newTitle) {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            if (benefits[benefitIndex]) {
+                benefits[benefitIndex].title = newTitle;
+                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+            }
+        }
+
+        function updateBenefitItem(benefitIndex, itemIndex, newValue) {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            if (benefits[benefitIndex] && benefits[benefitIndex].items[itemIndex]) {
+                benefits[benefitIndex].items[itemIndex] = newValue;
+                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+            }
+        }
+
+        function addBenefitItem(benefitIndex) {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            if (benefits[benefitIndex]) {
+                benefits[benefitIndex].items.push('Item i ri');
+                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                loadBenefitsEditor();
+            }
+        }
+
+        function removeBenefitItem(benefitIndex, itemIndex) {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            if (benefits[benefitIndex] && benefits[benefitIndex].items.length > 1) {
+                benefits[benefitIndex].items.splice(itemIndex, 1);
+                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                loadBenefitsEditor();
+            } else {
+                alert('Duhet të ketë të paktën një item në çdo kategori!');
+            }
+        }
+
+        function saveBenefits() {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            localStorage.setItem('benefitsData', JSON.stringify(benefits));
+            alert('Përfitimet u ruajtën me sukses!');
+        }
+
+        function resetBenefits() {
+            if (confirm('Jeni të sigurt që dëshironi të rivendosni të gjitha përfitimet në vlerat default?')) {
+                localStorage.removeItem('benefitsData');
+                loadBenefitsEditor();
+                alert('Përfitimet u rivendosën në vlerat default!');
+            }
+        }
+
+        function toggleBenefitCard(index) {
+            const itemsList = document.getElementById(`benefitItems_${index}`);
+            const toggleBtn = document.getElementById(`toggleBtn_${index}`);
+            
+            if (itemsList.classList.contains('collapsed')) {
+                itemsList.classList.remove('collapsed');
+                itemsList.classList.add('expanded');
+                toggleBtn.textContent = '▲';
+            } else {
+                itemsList.classList.remove('expanded');
+                itemsList.classList.add('collapsed');
+                toggleBtn.textContent = '▼';
+            }
+        }
+
+        function addNewBenefitCategory() {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const newCategory = {
+                title: 'Kategori e Re',
+                items: ['Item i parë']
+            };
+            benefits.push(newCategory);
+            localStorage.setItem('benefitsData', JSON.stringify(benefits));
+            loadBenefitsEditor();
+            
+            // Hap kategorinë e re automatikisht
+            setTimeout(() => {
+                const newIndex = benefits.length - 1;
+                toggleBenefitCard(newIndex);
+            }, 100);
+        }
+
+        function removeBenefitCategory(index) {
+            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            if (benefits.length > 1) {
+                if (confirm('Jeni të sigurt që dëshironi të fshini këtë kategori?')) {
+                    benefits.splice(index, 1);
+                    localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                    loadBenefitsEditor();
+                }
+            } else {
+                alert('Duhet të ketë të paktën një kategori!');
+            }
         }
     </script>
 </body>
