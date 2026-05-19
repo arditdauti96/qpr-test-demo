@@ -266,6 +266,223 @@
             
             return 0;
         }
+
+        const formFieldLabels = {
+            emri: 'Emri',
+            atesia: 'Atësia',
+            emriNenes: 'Emri i nënës',
+            mbiemri: 'Mbiemri',
+            nrPersonal: 'Nr personal ID',
+            gjinia: 'Gjinia',
+            'gjatësia': 'Gjatësia',
+            datelindja: 'Datëlindja',
+            vendlindja: 'Vendlindja',
+            vendbanimi: 'Vendbanimi',
+            kombesia: 'Kombësia',
+            shtetesia: 'Shtetësia',
+            adresa: 'Adresa e banimit',
+            nrKontakti: 'Nr kontakti',
+            email: 'Email',
+            arsimi: 'Arsimi',
+            emriShkollesNente: 'Emri i shkollës 9-vjeçare',
+            notaMesatareNente: 'Nota mesatare e klasës së 9-të',
+            shkollaMesme: 'Shkolla e mesme',
+            emriShkolles: 'Emri i shkollës së mesme',
+            notaMesatareGjimnaz: 'Nota mesatare e gjimnazit',
+            notaMesatareProfesionale: 'Nota mesatare e shkollës profesionale',
+            profiliShkolles: 'Profili i shkollës profesionale',
+            llojiUniversitetit: 'Lloji i universitetit',
+            diploma: 'Diploma e shkollës së lartë',
+            emriShkollesLarte: 'Emri i shkollës së lartë',
+            dataFillimit: 'Data e fillimit të shkollës së lartë',
+            dataMbarimit: 'Data e mbarimit të shkollës së lartë',
+            reparti: 'Reparti i preferuar',
+            motivi: 'Motivi',
+            denuar: 'A jeni dënuar ndonjëherë',
+            'denim[]': 'Lloji i dënimit',
+            masaSigurise: 'A është marrë masë sigurie',
+            'masaSigurise[]': 'Lloji i masës së sigurisë',
+            fazaRekrutimit: 'Faza e rekrutimit',
+            firma: 'Firma'
+        };
+
+        const questionnaireQuestions = [
+            'A keni ndryshuar emrin apo mbiemrin më parë?',
+            'A keni shtetësi tjetër përveç asaj shqiptare?',
+            'A keni shërbyer më parë në radhët e Forcave të Armatosura të Republikës së Shqipërisë?',
+            'A keni aplikuar ndonjëherë tjetër për të shërbyer në Forcat e Armatosura?',
+            'A jeni këshilluar ndonjëherë me psikolog apo mjek psikiatër?',
+            'A jeni në marrëdhënie pune?',
+            'A keni qenë herë tjetër në marrëdhënie pune?',
+            'A keni njohuri në ndonjë gjuhë të huaj?',
+            'A jeni i gatshëm të pranoni për të shërbyer brenda territorit të Republikës së Shqipërisë dhe jashtë saj në operacione ushtarake ndërkombëtare?',
+            'A do të dëshironit ta zhvillonit më tej karrierën tuaj, duke shërbyer si nënoficer ose oficer në të ardhmen?',
+            'A keni qenë ndonjëherë i dëbuar me "expulse" nga vendet e tjera?'
+        ];
+
+        const healthQuestions = [
+            'A keni marrë goditje në kokë këto 5 vitet e fundit?',
+            'A keni patur ndonjë tronditje në kokë këto 5 vitet e fundit?',
+            'A keni patur ndërhyrje kirurgjikale dentare brenda muajit të fundit?',
+            'A keni kryer ndërhyrje kirurgjikale në trupin tuaj?',
+            'A keni pasur thyerje të kockave të ndryshme të trupit brenda 1 viti?',
+            'A keni marrë apo jeni duke marrë mjekim kundër përdorimit të alkolit apo substancave narkotike të ndryshme?',
+            'A keni ndonjë shqetësim neurologjik apo psikologjik që lidhet me mirëfunksionimin e organizmit tuaj?',
+            'A keni pasur ndonjë shqetësim shëndetësor në zemër apo të tensionit arterial?',
+            'A keni pasur apo keni ndonjë çrregullim apo infeksion të organeve të dëgjimit (veshit) dhe frymëmarrjes (hundës) në muajin e fundit?',
+            'A keni pasur problem të tjera shëndetësore?'
+        ];
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function humanizeFieldKey(key) {
+            const arrayMatch = key.match(/^(.+)\[(\d+)\]$/);
+            if (arrayMatch) {
+                const [, baseKey, index] = arrayMatch;
+                const normalizedBase = baseKey.replace(/_koment$/, ' koment');
+                const baseLabel = formFieldLabels[baseKey] || normalizedBase
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, char => char.toUpperCase());
+                return `${baseLabel} ${parseInt(index, 10) + 1}`;
+            }
+
+            return formFieldLabels[key] || key
+                .replace(/\[\]/g, '')
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        function formatDetailValue(key, value) {
+            if (value === undefined || value === null || value === '') {
+                return 'N/A';
+            }
+
+            if (key === 'firma') {
+                return value ? 'Firma e ruajtur' : 'N/A';
+            }
+
+            if (Array.isArray(value)) {
+                return value.map(item => formatDetailValue('', item)).join(', ');
+            }
+
+            if (typeof value === 'boolean') {
+                return value ? 'Po' : 'Jo';
+            }
+
+            if (typeof value === 'string') {
+                if (value.startsWith('data:image/')) {
+                    return 'Imazh i ruajtur';
+                }
+
+                const formattedDate = formatDateForDisplay(value);
+                if (formattedDate && formattedDate !== value) {
+                    return formattedDate;
+                }
+            }
+
+            return String(value);
+        }
+
+        function renderResponseTable(title, questions, formData, answerPrefix, commentPrefix) {
+            const rows = questions.map((question, index) => {
+                const answer = formData[`${answerPrefix}[${index}]`];
+                const comment = commentPrefix ? formData[`${commentPrefix}[${index}]`] : '';
+
+                if (!answer && !comment) {
+                    return '';
+                }
+
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${escapeHtml(question)}</td>
+                        <td>${escapeHtml(formatDetailValue('', answer || 'N/A'))}</td>
+                        <td>${escapeHtml(formatDetailValue('', comment || ''))}</td>
+                    </tr>
+                `;
+            }).filter(Boolean);
+
+            if (rows.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="detail-section">
+                    <h3 class="detail-title">${escapeHtml(title)}</h3>
+                    <div class="table-responsive">
+                        <table class="form-table">
+                            <thead>
+                                <tr>
+                                    <th>Nr</th>
+                                    <th>Pyetja</th>
+                                    <th>Përgjigja</th>
+                                    <th>Komenti</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFormDataDetails(formData = {}) {
+            const excludedKeys = new Set(['fotoPersonale', 'fotoKarte', 'dokumentetArsimit']);
+            const entries = Object.entries(formData)
+                .filter(([key, value]) => {
+                    if (excludedKeys.has(key) || value === '' || value === null || value === undefined) {
+                        return false;
+                    }
+
+                    if (/^(pyetësori|pyetësori_koment|shendetesor|shendetesor_koment)\[\d+\]$/.test(key)) {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .map(([key, value]) => {
+                    if (Array.isArray(value) && value.length === 0) {
+                        return null;
+                    }
+
+                    if (typeof value === 'boolean' && value === false) {
+                        return null;
+                    }
+
+                    return `
+                        <div class="detail-item">
+                            <span class="detail-label">${escapeHtml(humanizeFieldKey(key))}:</span>
+                            <span class="detail-value">${escapeHtml(formatDetailValue(key, value))}</span>
+                        </div>
+                    `;
+                })
+                .filter(Boolean);
+
+            if (entries.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="detail-section">
+                    <h3 class="detail-title">Të Gjitha Fushat e Formularit</h3>
+                    <div class="detail-grid">
+                        ${entries.join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         // Check if admin is logged in
         window.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = localStorage.getItem('qprLoggedIn');
@@ -659,11 +876,16 @@
                     <div class="detail-section">
                         <h3 class="detail-title">Motivimi</h3>
                         <div class="motivation-box">
-                            <p>${app.motivation}</p>
+                            <p>${escapeHtml(app.motivation)}</p>
                         </div>
                     </div>
                 `;
             }
+
+            detailsHTML += renderResponseTable('Pyetësori', questionnaireQuestions, app.formData || {}, 'pyetësori', 'pyetësori_koment');
+            detailsHTML += renderResponseTable('Formulari Shëndetësor', healthQuestions, app.formData || {}, 'shendetesor', 'shendetesor_koment');
+
+            detailsHTML += renderFormDataDetails(app.formData);
             
             // Documents Section
             if (app.documents && app.documents.length > 0) {
@@ -890,6 +1112,64 @@
             });
             return y;
         }
+
+        function drawGuideLine(doc, startX, endX, y, offset = 1.6) {
+            doc.line(startX, y + offset, endX, y + offset);
+        }
+
+        function getIndexedFieldValue(values, prefixes, index) {
+            for (const prefix of prefixes) {
+                const value = values[`${prefix}[${index}]`];
+                if (value !== undefined && value !== null && value !== '') {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function buildPdfResponseRows(questions, formData, answerPrefixes, commentPrefixes) {
+            return questions.map((question, index) => {
+                const answer = getIndexedFieldValue(formData, answerPrefixes, index);
+                const comment = commentPrefixes ? getIndexedFieldValue(formData, commentPrefixes, index) : '';
+
+                if (!answer && !comment) {
+                    return null;
+                }
+
+                return [
+                    index + 1,
+                    question,
+                    formatDetailValue('', answer || 'N/A'),
+                    formatDetailValue('', comment || '')
+                ];
+            }).filter(Boolean);
+        }
+
+        function appendResponseTablePage(doc, title, rows) {
+            if (!rows.length) {
+                return;
+            }
+
+            doc.addPage();
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text(title, 105, 18, { align: 'center' });
+
+            doc.autoTable({
+                startY: 26,
+                head: [['Nr', 'Pyetja', 'Përgjigja', 'Komenti']],
+                body: rows,
+                headStyles: { fillColor: [0, 51, 160] },
+                styles: { fontSize: 8.5, cellPadding: 2, overflow: 'linebreak', valign: 'middle' },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 102 },
+                    2: { cellWidth: 25, halign: 'center' },
+                    3: { cellWidth: 48 }
+                },
+                margin: { left: 12, right: 12, top: 26, bottom: 16 }
+            });
+        }
         
         function generateAcceptancePdf(app) {
             const doc = createPdfDocument();
@@ -947,7 +1227,7 @@
             doc.setLineWidth(0.3);
             const emriLineStart = 32;
             const emriLineEnd = 58;
-            doc.line(emriLineStart, y - 2, emriLineEnd, y - 2);
+            drawGuideLine(doc, emriLineStart, emriLineEnd, y);
             if (firstName) {
                 doc.text(firstName, emriLineStart + 1, y);
             }
@@ -956,7 +1236,7 @@
             // Long dotted line for Atësia
             const atesiaLineStart = 80;
             const atesiaLineEnd = 106;
-            doc.line(atesiaLineStart, y - 2, atesiaLineEnd, y - 2);
+            drawGuideLine(doc, atesiaLineStart, atesiaLineEnd, y);
             if (fatherName) {
                 doc.text(fatherName, atesiaLineStart + 1, y);
             }
@@ -965,7 +1245,7 @@
             // Very long dotted line for Mbiemri (extends to end of page)
             const mbiemriLineStart = 138;
             const mbiemriLineEnd = 196;
-            doc.line(mbiemriLineStart, y - 2, mbiemriLineEnd, y - 2);
+            drawGuideLine(doc, mbiemriLineStart, mbiemriLineEnd, y);
             if (lastName) {
                 doc.text(lastName, mbiemriLineStart + 1, y);
             }
@@ -977,7 +1257,7 @@
             doc.setLineDash([1, 1.5], 0);
             const datelindjaLineStart = 42;
             const datelindjaLineEnd = 58;
-            doc.line(datelindjaLineStart, y - 2, datelindjaLineEnd, y - 2);
+            drawGuideLine(doc, datelindjaLineStart, datelindjaLineEnd, y);
             if (dob) {
                 doc.text(dob, datelindjaLineStart + 1, y);
             }
@@ -985,7 +1265,7 @@
             doc.text('Vendlindja', 62, y);
             const vendlindjaLineStart = 90;
             const vendlindjaLineEnd = 106;
-            doc.line(vendlindjaLineStart, y - 2, vendlindjaLineEnd, y - 2);
+            drawGuideLine(doc, vendlindjaLineStart, vendlindjaLineEnd, y);
             if (pob) {
                 doc.text(pob, vendlindjaLineStart + 1, y);
             }
@@ -993,7 +1273,7 @@
             doc.text('Vendbanimi', 110, y);
             const vendbanimiLineStart = 148;
             const vendbanimiLineEnd = 196;
-            doc.line(vendbanimiLineStart, y - 2, vendbanimiLineEnd, y - 2);
+            drawGuideLine(doc, vendbanimiLineStart, vendbanimiLineEnd, y);
             if (residence) {
                 const residenceLines = doc.splitTextToSize(residence, 45);
                 doc.text(residenceLines[0], vendbanimiLineStart + 1, y);
@@ -1006,7 +1286,7 @@
             doc.setLineDash([1, 1.5], 0);
             const idLineStart = 75;
             const idLineEnd = 196;
-            doc.line(idLineStart, y - 2, idLineEnd, y - 2);
+            drawGuideLine(doc, idLineStart, idLineEnd, y);
             if (idNumber) {
                 doc.text(idNumber, idLineStart + 1, y);
             }
@@ -1185,6 +1465,12 @@
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
             doc.text('Data: ____.____.________', 180, y, { align: 'right' });
+
+            const questionnaireRows = buildPdfResponseRows(questionnaireQuestions, formData, ['pyetësori', 'pyetesori'], ['pyetësori_koment', 'pyetesori_koment']);
+            const healthRows = buildPdfResponseRows(healthQuestions, formData, ['shendetesor', 'shëndetesor'], ['shendetesor_koment', 'shëndetesor_koment']);
+
+            appendResponseTablePage(doc, 'PYETËSORI I APLIKIMIT', questionnaireRows);
+            appendResponseTablePage(doc, 'FORMULARI I VETËDEKLARIMIT SHËNDETËSOR', healthRows);
             
             const fileName = `Formulari_Pranimit_${app.id || Date.now()}.pdf`;
             doc.save(fileName);

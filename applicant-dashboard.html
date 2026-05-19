@@ -238,6 +238,255 @@
             
             return 0;
         }
+
+        const formFieldLabels = {
+            emri: 'Emri',
+            atesia: 'Atësia',
+            emriNenes: 'Emri i nënës',
+            mbiemri: 'Mbiemri',
+            nrPersonal: 'Nr personal ID',
+            gjinia: 'Gjinia',
+            'gjatësia': 'Gjatësia',
+            datelindja: 'Datëlindja',
+            vendlindja: 'Vendlindja',
+            vendbanimi: 'Vendbanimi',
+            kombesia: 'Kombësia',
+            shtetesia: 'Shtetësia',
+            adresa: 'Adresa e banimit',
+            nrKontakti: 'Nr kontakti',
+            email: 'Email',
+            arsimi: 'Arsimi',
+            emriShkollesNente: 'Emri i shkollës 9-vjeçare',
+            notaMesatareNente: 'Nota mesatare e klasës së 9-të',
+            shkollaMesme: 'Shkolla e mesme',
+            emriShkolles: 'Emri i shkollës së mesme',
+            notaMesatareGjimnaz: 'Nota mesatare e gjimnazit',
+            notaMesatareProfesionale: 'Nota mesatare e shkollës profesionale',
+            profiliShkolles: 'Profili i shkollës profesionale',
+            llojiUniversitetit: 'Lloji i universitetit',
+            diploma: 'Diploma e shkollës së lartë',
+            emriShkollesLarte: 'Emri i shkollës së lartë',
+            dataFillimit: 'Data e fillimit të shkollës së lartë',
+            dataMbarimit: 'Data e mbarimit të shkollës së lartë',
+            reparti: 'Reparti i preferuar',
+            motivi: 'Motivi',
+            denuar: 'A jeni dënuar ndonjëherë',
+            'denim[]': 'Lloji i dënimit',
+            masaSigurise: 'A është marrë masë sigurie',
+            'masaSigurise[]': 'Lloji i masës së sigurisë',
+            fazaRekrutimit: 'Faza e rekrutimit',
+            firma: 'Firma'
+        };
+
+        const questionnaireQuestions = [
+            'A keni ndryshuar emrin apo mbiemrin më parë?',
+            'A keni shtetësi tjetër përveç asaj shqiptare?',
+            'A keni shërbyer më parë në radhët e Forcave të Armatosura të Republikës së Shqipërisë?',
+            'A keni aplikuar ndonjëherë tjetër për të shërbyer në Forcat e Armatosura?',
+            'A jeni këshilluar ndonjëherë me psikolog apo mjek psikiatër?',
+            'A jeni në marrëdhënie pune?',
+            'A keni qenë herë tjetër në marrëdhënie pune?',
+            'A keni njohuri në ndonjë gjuhë të huaj?',
+            'A jeni i gatshëm të pranoni për të shërbyer brenda territorit të Republikës së Shqipërisë dhe jashtë saj në operacione ushtarake ndërkombëtare?',
+            'A do të dëshironit ta zhvillonit më tej karrierën tuaj, duke shërbyer si nënoficer ose oficer në të ardhmen?',
+            'A keni qenë ndonjëherë i dëbuar me "expulse" nga vendet e tjera?'
+        ];
+
+        const healthQuestions = [
+            'A keni marrë goditje në kokë këto 5 vitet e fundit?',
+            'A keni patur ndonjë tronditje në kokë këto 5 vitet e fundit?',
+            'A keni patur ndërhyrje kirurgjikale dentare brenda muajit të fundit?',
+            'A keni kryer ndërhyrje kirurgjikale në trupin tuaj?',
+            'A keni pasur thyerje të kockave të ndryshme të trupit brenda 1 viti?',
+            'A keni marrë apo jeni duke marrë mjekim kundër përdorimit të alkolit apo substancave narkotike të ndryshme?',
+            'A keni ndonjë shqetësim neurologjik apo psikologjik që lidhet me mirëfunksionimin e organizmit tuaj?',
+            'A keni pasur ndonjë shqetësim shëndetësor në zemër apo të tensionit arterial?',
+            'A keni pasur apo keni ndonjë çrregullim apo infeksion të organeve të dëgjimit (veshit) dhe frymëmarrjes (hundës) në muajin e fundit?',
+            'A keni pasur problem të tjera shëndetësore?'
+        ];
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function humanizeFieldKey(key) {
+            const arrayMatch = key.match(/^(.+)\[(\d+)\]$/);
+            if (arrayMatch) {
+                const [, baseKey, index] = arrayMatch;
+                const normalizedBase = baseKey.replace(/_koment$/, ' koment');
+                const baseLabel = formFieldLabels[baseKey] || normalizedBase
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, char => char.toUpperCase());
+                return `${baseLabel} ${parseInt(index, 10) + 1}`;
+            }
+
+            return formFieldLabels[key] || key
+                .replace(/\[\]/g, '')
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        function formatDetailValue(key, value) {
+            if (value === undefined || value === null || value === '') {
+                return 'N/A';
+            }
+
+            if (key === 'firma') {
+                return value ? 'Firma e ruajtur' : 'N/A';
+            }
+
+            if (Array.isArray(value)) {
+                return value.map(item => formatDetailValue('', item)).join(', ');
+            }
+
+            if (typeof value === 'boolean') {
+                return value ? 'Po' : 'Jo';
+            }
+
+            if (typeof value === 'string') {
+                if (value.startsWith('data:image/')) {
+                    return 'Imazh i ruajtur';
+                }
+
+                const formattedDate = formatDateForDisplay(value);
+                if (formattedDate && formattedDate !== value) {
+                    return formattedDate;
+                }
+            }
+
+            return String(value);
+        }
+
+        function renderResponseTable(title, questions, formData, answerPrefix, commentPrefix) {
+            const rows = questions.map((question, index) => {
+                const answer = formData[`${answerPrefix}[${index}]`];
+                const comment = commentPrefix ? formData[`${commentPrefix}[${index}]`] : '';
+
+                if (!answer && !comment) {
+                    return '';
+                }
+
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${escapeHtml(question)}</td>
+                        <td>${escapeHtml(formatDetailValue('', answer || 'N/A'))}</td>
+                        <td>${escapeHtml(formatDetailValue('', comment || ''))}</td>
+                    </tr>
+                `;
+            }).filter(Boolean);
+
+            if (rows.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="detail-section">
+                    <h3 class="detail-title">${escapeHtml(title)}</h3>
+                    <div class="table-responsive">
+                        <table class="form-table">
+                            <thead>
+                                <tr>
+                                    <th>Nr</th>
+                                    <th>Pyetja</th>
+                                    <th>Përgjigja</th>
+                                    <th>Komenti</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFormDataDetails(formData = {}, title = 'Të Gjitha Fushat e Formularit') {
+            const excludedKeys = new Set(['fotoPersonale', 'fotoKarte', 'dokumentetArsimit']);
+            const entries = Object.entries(formData)
+                .filter(([key, value]) => {
+                    if (excludedKeys.has(key) || value === '' || value === null || value === undefined) {
+                        return false;
+                    }
+
+                    if (/^(pyetësori|pyetësori_koment|shendetesor|shendetesor_koment)\[\d+\]$/.test(key)) {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .map(([key, value]) => {
+                    if (Array.isArray(value) && value.length === 0) {
+                        return null;
+                    }
+
+                    if (typeof value === 'boolean' && value === false) {
+                        return null;
+                    }
+
+                    return `
+                        <div class="detail-item">
+                            <span class="detail-label">${escapeHtml(humanizeFieldKey(key))}:</span>
+                            <span class="detail-value">${escapeHtml(formatDetailValue(key, value))}</span>
+                        </div>
+                    `;
+                })
+                .filter(Boolean);
+
+            if (entries.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="detail-section">
+                    <h3 class="detail-title">${escapeHtml(title)}</h3>
+                    <div class="detail-grid">
+                        ${entries.join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getProfileFieldValue(latestApp, ...keys) {
+            const formData = latestApp?.formData || {};
+            const personalData = latestApp?.personalData || {};
+            const educationData = latestApp?.educationData || {};
+
+            for (const key of keys) {
+                const sources = [formData[key], personalData[key], educationData[key]];
+                const value = sources.find(entry => entry !== undefined && entry !== null && entry !== '');
+                if (value !== undefined) {
+                    return value;
+                }
+            }
+
+            return '';
+        }
+
+        function renderProfileDetailItem(label, value, formatter = null) {
+            const displayValue = formatter ? formatter(value) : value;
+            return `
+                <div class="detail-item">
+                    <span class="detail-label">${escapeHtml(label)}:</span>
+                    <span class="detail-value">${escapeHtml(displayValue || 'N/A')}</span>
+                </div>
+            `;
+        }
+
+        function getLatestUserApplication(email) {
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const userApplications = applications.filter(app => app.email === email);
+            return userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
+        }
+
         // Kontrollo nëse përdoruesi është i loguar
         window.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = localStorage.getItem('applicantLoggedIn');
@@ -251,13 +500,13 @@
             // Display user email with better formatting
             const userEmailElement = document.getElementById('userEmail');
             if (userEmailElement) {
-                // Get user's name from applications if available
-                const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-                const userApplications = applications.filter(app => app.email === email);
-                const latestApp = userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
+                const latestApp = getLatestUserApplication(email);
                 
-                if (latestApp && latestApp.personalData) {
-                    const fullName = `${latestApp.personalData.firstName || ''} ${latestApp.personalData.lastName || ''}`.trim();
+                if (latestApp) {
+                    const fullName = [
+                        getProfileFieldValue(latestApp, 'emri', 'firstName'),
+                        getProfileFieldValue(latestApp, 'mbiemri', 'lastName')
+                    ].filter(Boolean).join(' ');
                     if (fullName) {
                         userEmailElement.textContent = fullName;
                         userEmailElement.title = email; // Show email on hover
@@ -387,64 +636,50 @@
 
         function loadProfile() {
             const email = localStorage.getItem('applicantEmail');
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-            const userApplications = applications.filter(app => app.email === email);
-            
-            // Get most recent application for profile data
-            const latestApp = userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
-            
-            const profileName = latestApp?.personalData ? 
-                `${latestApp.personalData.firstName || ''} ${latestApp.personalData.lastName || ''}`.trim() || email : 
+            const latestApp = getLatestUserApplication(email);
+            const profileName = latestApp ?
+                [
+                    getProfileFieldValue(latestApp, 'emri', 'firstName'),
+                    getProfileFieldValue(latestApp, 'mbiemri', 'lastName')
+                ].filter(Boolean).join(' ') || email :
                 email;
             
             document.getElementById('profileName').textContent = profileName;
             document.getElementById('profileEmail').textContent = email;
             
             const profileDetails = document.getElementById('profileDetails');
-            if (latestApp && latestApp.personalData) {
-                const pd = latestApp.personalData;
-                const birthDate = formatDateForDisplay(pd.birthDate) || 'N/A';
+            if (latestApp) {
+                const birthDate = formatDateForDisplay(getProfileFieldValue(latestApp, 'datelindja', 'birthDate')) || 'N/A';
+                const detailItems = [
+                    renderProfileDetailItem('Emri', getProfileFieldValue(latestApp, 'emri', 'firstName')),
+                    renderProfileDetailItem('Atësia', getProfileFieldValue(latestApp, 'atesia')),
+                    renderProfileDetailItem('Emri i nënës', getProfileFieldValue(latestApp, 'emriNenes')),
+                    renderProfileDetailItem('Mbiemri', getProfileFieldValue(latestApp, 'mbiemri', 'lastName')),
+                    renderProfileDetailItem('Nr personal ID', getProfileFieldValue(latestApp, 'nrPersonal')),
+                    renderProfileDetailItem('Gjinia', getProfileFieldValue(latestApp, 'gjinia')),
+                    renderProfileDetailItem('Gjatësia', getProfileFieldValue(latestApp, 'gjatësia'), value => value ? `${value} cm` : ''),
+                    renderProfileDetailItem('Data e Lindjes', birthDate),
+                    renderProfileDetailItem('Vendi i Lindjes', getProfileFieldValue(latestApp, 'vendlindja', 'placeOfBirth')),
+                    renderProfileDetailItem('Vendbanimi', getProfileFieldValue(latestApp, 'vendbanimi')),
+                    renderProfileDetailItem('Adresa', getProfileFieldValue(latestApp, 'adresa', 'address')),
+                    renderProfileDetailItem('Kombësia', getProfileFieldValue(latestApp, 'kombesia')),
+                    renderProfileDetailItem('Shtetësia', getProfileFieldValue(latestApp, 'shtetesia')),
+                    renderProfileDetailItem('Telefoni', getProfileFieldValue(latestApp, 'nrKontakti', 'phone')),
+                    renderProfileDetailItem('Email', email),
+                    renderProfileDetailItem('Arsimi', getProfileFieldValue(latestApp, 'arsimi', 'level')),
+                    renderProfileDetailItem('Institucioni', getProfileFieldValue(latestApp, 'emriShkollesLarte', 'emriShkolles', 'emriShkollesNente', 'institution')),
+                    renderProfileDetailItem('Reparti i preferuar', getProfileFieldValue(latestApp, 'reparti', 'preferredUnit')),
+                    renderProfileDetailItem('Faza e rekrutimit', getProfileFieldValue(latestApp, 'fazaRekrutimit')),
+                    renderProfileDetailItem('Motivi', getProfileFieldValue(latestApp, 'motivi', 'motivation'))
+                ].join('');
+
                 profileDetails.innerHTML = `
                     <div class="detail-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">Emri:</span>
-                            <span class="detail-value">${pd.firstName || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Mbiemri:</span>
-                            <span class="detail-value">${pd.lastName || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Data e Lindjes:</span>
-                            <span class="detail-value">${birthDate}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Vendi i Lindjes:</span>
-                            <span class="detail-value">${pd.placeOfBirth || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Adresa:</span>
-                            <span class="detail-value">${pd.address || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Telefoni:</span>
-                            <span class="detail-value">${pd.phone || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Email:</span>
-                            <span class="detail-value">${email}</span>
-                        </div>
-                        ${latestApp.educationData ? `
-                        <div class="detail-item">
-                            <span class="detail-label">Niveli i Arsimit:</span>
-                            <span class="detail-value">${latestApp.educationData.level || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Institucioni:</span>
-                            <span class="detail-value">${latestApp.educationData.institution || 'N/A'}</span>
-                        </div>
-                        ` : ''}
+                        ${detailItems}
                     </div>
+                    ${renderResponseTable('Pyetësori', questionnaireQuestions, latestApp.formData || {}, 'pyetësori', 'pyetësori_koment')}
+                    ${renderResponseTable('Formulari Shëndetësor', healthQuestions, latestApp.formData || {}, 'shendetesor', 'shendetesor_koment')}
+                    ${renderFormDataDetails(latestApp.formData || {})}
                 `;
             } else {
                 profileDetails.innerHTML = `
@@ -701,47 +936,9 @@
                 `;
             }
             
-            // Additional Form Data
-            if (app.formData) {
-                detailsHTML += `
-                    <div class="detail-section">
-                        <h3 class="detail-title">Informacion Shtesë</h3>
-                        <div class="detail-grid">
-                `;
-                for (const [key, value] of Object.entries(app.formData)) {
-                    if (value === null || value === undefined) continue;
-                    if (value === '' || value === false) continue;
-                    
-                    const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    let displayValue = value;
-                    
-                    if (Array.isArray(value)) {
-                        if (value.length === 0) continue;
-                        displayValue = value.join(', ');
-                    } else if (typeof value === 'boolean') {
-                        if (!value) continue;
-                        displayValue = 'Po';
-                    } else if (typeof value === 'string') {
-                        const maybeDate = formatDateForDisplay(value);
-                        if (maybeDate) {
-                            displayValue = maybeDate;
-                        }
-                    }
-                    
-                    if (displayValue === '') continue;
-                    
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">${label}:</span>
-                            <span class="detail-value">${displayValue}</span>
-                        </div>
-                    `;
-                }
-                detailsHTML += `
-                        </div>
-                    </div>
-                `;
-            }
+            detailsHTML += renderResponseTable('Pyetësori', questionnaireQuestions, app.formData || {}, 'pyetësori', 'pyetësori_koment');
+            detailsHTML += renderResponseTable('Formulari Shëndetësor', healthQuestions, app.formData || {}, 'shendetesor', 'shendetesor_koment');
+            detailsHTML += renderFormDataDetails(app.formData || {}, 'Të Gjitha Fushat e Formularit');
             
             // Motivation
             if (app.motivation) {
@@ -749,7 +946,7 @@
                     <div class="detail-section">
                         <h3 class="detail-title">Motivimi</h3>
                         <div class="motivation-box">
-                            <p>${app.motivation}</p>
+                            <p>${escapeHtml(app.motivation)}</p>
                         </div>
                     </div>
                 `;
@@ -763,7 +960,7 @@
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span class="detail-label">Njësia:</span>
-                                <span class="detail-value">${app.preferredUnit}</span>
+                                <span class="detail-value">${escapeHtml(app.preferredUnit)}</span>
                             </div>
                         </div>
                     </div>
