@@ -455,6 +455,59 @@
             `;
         }
 
+        function getEducationFieldValue(app, ...keys) {
+            const formData = app?.formData || {};
+            const educationData = app?.educationData || {};
+
+            for (const key of keys) {
+                const value = [formData[key], educationData[key]].find(entry => entry !== undefined && entry !== null && entry !== '');
+                if (value !== undefined) {
+                    return value;
+                }
+            }
+
+            return '';
+        }
+
+        function renderEducationDetails(app, title = 'Të Dhëna Arsimore') {
+            const level = getEducationFieldValue(app, 'arsimi', 'level');
+            const shkollaMesme = getEducationFieldValue(app, 'shkollaMesme');
+            const rows = [
+                ['Niveli i Arsimit', level],
+                ['Emri i shkollës 9-vjeçare', getEducationFieldValue(app, 'emriShkollesNente')],
+                ['Nota mesatare e klasës së 9-të', getEducationFieldValue(app, 'notaMesatareNente')],
+                ['Lloji i shkollës së mesme', shkollaMesme],
+                ['Emri i shkollës së mesme', getEducationFieldValue(app, 'emriShkolles', 'institution')],
+                ['Nota mesatare e gjimnazit', getEducationFieldValue(app, 'notaMesatareGjimnaz')],
+                ['Nota mesatare e shkollës profesionale', getEducationFieldValue(app, 'notaMesatareProfesionale')],
+                ['Profili i shkollës profesionale', getEducationFieldValue(app, 'profiliShkolles')],
+                ['Lloji i universitetit', getEducationFieldValue(app, 'llojiUniversitetit')],
+                ['Diploma', getEducationFieldValue(app, 'diploma')],
+                ['Emri i shkollës së lartë', getEducationFieldValue(app, 'emriShkollesLarte')],
+                ['Data e fillimit të shkollës së lartë', getEducationFieldValue(app, 'dataFillimit')],
+                ['Data e mbarimit të shkollës së lartë', getEducationFieldValue(app, 'dataMbarimit')],
+                ['Viti i Diplomimit', getEducationFieldValue(app, 'graduationYear')]
+            ].filter(([, value]) => value !== undefined && value !== null && value !== '');
+
+            if (rows.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="detail-section">
+                    <h3 class="detail-title">${escapeHtml(title)}</h3>
+                    <div class="detail-grid">
+                        ${rows.map(([label, value]) => `
+                            <div class="detail-item">
+                                <span class="detail-label">${escapeHtml(label)}:</span>
+                                <span class="detail-value">${escapeHtml(formatDetailValue('', value))}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         function getProfileFieldValue(latestApp, ...keys) {
             const formData = latestApp?.formData || {};
             const personalData = latestApp?.personalData || {};
@@ -677,6 +730,7 @@
                     <div class="detail-grid">
                         ${detailItems}
                     </div>
+                    ${renderEducationDetails(latestApp)}
                     ${renderResponseTable('Pyetësori', questionnaireQuestions, latestApp.formData || {}, 'pyetësori', 'pyetësori_koment')}
                     ${renderResponseTable('Formulari Shëndetësor', healthQuestions, latestApp.formData || {}, 'shendetesor', 'shendetesor_koment')}
                     ${renderFormDataDetails(latestApp.formData || {})}
@@ -913,28 +967,7 @@
             }
             
             // Education Data
-            if (app.educationData) {
-                const ed = app.educationData;
-                detailsHTML += `
-                    <div class="detail-section">
-                        <h3 class="detail-title">Të Dhëna Arsimore</h3>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <span class="detail-label">Niveli i Arsimit:</span>
-                                <span class="detail-value">${ed.level || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Institucioni:</span>
-                                <span class="detail-value">${ed.institution || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Viti i Diplomimit:</span>
-                                <span class="detail-value">${ed.graduationYear || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+            detailsHTML += renderEducationDetails(app);
             
             detailsHTML += renderResponseTable('Pyetësori', questionnaireQuestions, app.formData || {}, 'pyetësori', 'pyetësori_koment');
             detailsHTML += renderResponseTable('Formulari Shëndetësor', healthQuestions, app.formData || {}, 'shendetesor', 'shendetesor_koment');

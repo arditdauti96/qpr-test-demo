@@ -807,6 +807,18 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         educationData: {
             level: formData.get('arsimi') || '',
+            shkollaMesme: formData.get('shkollaMesme') || '',
+            emriShkollesNente: formData.get('emriShkollesNente') || '',
+            notaMesatareNente: formData.get('notaMesatareNente') || '',
+            emriShkolles: formData.get('emriShkolles') || '',
+            notaMesatareGjimnaz: formData.get('notaMesatareGjimnaz') || '',
+            notaMesatareProfesionale: formData.get('notaMesatareProfesionale') || '',
+            profiliShkolles: formData.get('profiliShkolles') || '',
+            llojiUniversitetit: formData.get('llojiUniversitetit') || '',
+            diploma: formData.get('diploma') || '',
+            emriShkollesLarte: formData.get('emriShkollesLarte') || '',
+            dataFillimit: formatDateValue(formData.get('dataFillimit')) || '',
+            dataMbarimit: formatDateValue(formData.get('dataMbarimit')) || '',
             institution: formData.get('emriShkollesLarte') || formData.get('emriShkolles') || formData.get('emriShkollesNente') || '',
             graduationYear: (formData.get('dataMbarimit') || '').split('-')[2] || ''
         },

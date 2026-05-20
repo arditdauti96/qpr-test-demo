@@ -483,6 +483,59 @@
             `;
         }
 
+        function getEducationFieldValue(app, ...keys) {
+            const formData = app?.formData || {};
+            const educationData = app?.educationData || {};
+
+            for (const key of keys) {
+                const value = [formData[key], educationData[key]].find(entry => entry !== undefined && entry !== null && entry !== '');
+                if (value !== undefined) {
+                    return value;
+                }
+            }
+
+            return '';
+        }
+
+        function renderEducationDetails(app, title = 'Të Dhëna Arsimore') {
+            const level = getEducationFieldValue(app, 'arsimi', 'level');
+            const shkollaMesme = getEducationFieldValue(app, 'shkollaMesme');
+            const rows = [
+                ['Niveli i Arsimit', level],
+                ['Emri i shkollës 9-vjeçare', getEducationFieldValue(app, 'emriShkollesNente')],
+                ['Nota mesatare e klasës së 9-të', getEducationFieldValue(app, 'notaMesatareNente')],
+                ['Lloji i shkollës së mesme', shkollaMesme],
+                ['Emri i shkollës së mesme', getEducationFieldValue(app, 'emriShkolles', 'institution')],
+                ['Nota mesatare e gjimnazit', getEducationFieldValue(app, 'notaMesatareGjimnaz')],
+                ['Nota mesatare e shkollës profesionale', getEducationFieldValue(app, 'notaMesatareProfesionale')],
+                ['Profili i shkollës profesionale', getEducationFieldValue(app, 'profiliShkolles')],
+                ['Lloji i universitetit', getEducationFieldValue(app, 'llojiUniversitetit')],
+                ['Diploma', getEducationFieldValue(app, 'diploma')],
+                ['Emri i shkollës së lartë', getEducationFieldValue(app, 'emriShkollesLarte')],
+                ['Data e fillimit të shkollës së lartë', getEducationFieldValue(app, 'dataFillimit')],
+                ['Data e mbarimit të shkollës së lartë', getEducationFieldValue(app, 'dataMbarimit')],
+                ['Viti i Diplomimit', getEducationFieldValue(app, 'graduationYear')]
+            ].filter(([, value]) => value !== undefined && value !== null && value !== '');
+
+            if (rows.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="detail-section">
+                    <h3 class="detail-title">${escapeHtml(title)}</h3>
+                    <div class="detail-grid">
+                        ${rows.map(([label, value]) => `
+                            <div class="detail-item">
+                                <span class="detail-label">${escapeHtml(label)}:</span>
+                                <span class="detail-value">${escapeHtml(formatDetailValue('', value))}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         // Check if admin is logged in
         window.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = localStorage.getItem('qprLoggedIn');
@@ -847,28 +900,7 @@
             }
             
             // Education Data
-            if (app.educationData) {
-                const ed = app.educationData;
-                detailsHTML += `
-                    <div class="detail-section">
-                        <h3 class="detail-title">Të Dhëna Arsimore</h3>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <span class="detail-label">Niveli i Arsimit:</span>
-                                <span class="detail-value">${ed.level || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Institucioni:</span>
-                                <span class="detail-value">${ed.institution || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Viti i Diplomimit:</span>
-                                <span class="detail-value">${ed.graduationYear || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+            detailsHTML += renderEducationDetails(app);
             
             // Motivation
             if (app.motivation) {
@@ -976,6 +1008,9 @@
                             ❌ Refuzo
                         </button>
                     ` : ''}
+                    <button class="action-btn review-btn" onclick="downloadCompleteApplication(${index})">
+                        📦 Shkarko Aplikimin
+                    </button>
                     <button class="action-btn comment-btn" onclick="addComment(${index})">
                         💬 Shto Koment
                     </button>
@@ -1075,6 +1110,21 @@
             }
         }
 
+        function downloadCompleteApplication(appIndex) {
+            const app = window.allApplications[appIndex];
+            if (!app) {
+                alert('Aplikimi nuk u gjet!');
+                return;
+            }
+
+            try {
+                generateApplicationPdf(app);
+            } catch (error) {
+                console.error('Failed to generate application PDF:', error);
+                alert('Gabim gjatë gjenerimit të PDF-së së aplikimit. Ju lutem provoni përsëri.');
+            }
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('applicationModal');
@@ -1111,6 +1161,40 @@
                 y += lineHeight;
             });
             return y;
+        }
+
+        function getApplicationFormValue(formValues, ...keys) {
+            for (const key of keys) {
+                const value = formValues[key];
+                if (Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null && value !== '') {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function getApplicantFullName(formValues) {
+            return [formValues.emri, formValues.atesia, formValues.mbiemri].filter(Boolean).join(' ');
+        }
+
+        function addSignatureToPdf(doc, signatureData, y, options = {}) {
+            if (!signatureData) {
+                return y;
+            }
+
+            const { x = 14, width = 50, height = 18, label = 'Firma:' } = options;
+            y = ensurePageSpace(doc, y, height + 10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(label, x, y);
+            doc.setFont('helvetica', 'normal');
+
+            try {
+                doc.addImage(signatureData, 'PNG', x + 18, y - 6, width, height);
+                return y + height + 4;
+            } catch (error) {
+                console.warn('Could not add signature image to PDF.', error);
+                return addBlockText(doc, 'Firma nuk mund të ngarkohej në PDF.', y + 4, { x });
+            }
         }
 
         function drawGuideLine(doc, startX, endX, y, offset = 1.6) {
@@ -1232,9 +1316,112 @@
             y = addBlockText(doc, 'Shtetasi', y);
             y = addBlockText(doc, applicantName || '____________________________________', y + 2);
             y = addBlockText(doc, '(Emri     Atësia     Mbiemri)', y + 2);
+            y = addSignatureToPdf(doc, app.signature || formData.firma, y + 2, { x: 14, label: 'Firma:' });
+        }
+
+        function buildApplicationResponseRows(questions, formData, answerPrefixes, commentPrefixes) {
+            return questions.map((question, index) => {
+                const answer = getIndexedFieldValue(formData, answerPrefixes, index);
+                const comment = commentPrefixes ? getIndexedFieldValue(formData, commentPrefixes, index) : '';
+                return {
+                    index,
+                    question,
+                    answer,
+                    comment
+                };
+            });
+        }
+
+        function generateApplicationPdf(app) {
+            const doc = createPdfDocument();
+            if (!doc) {
+                console.warn('jsPDF not available; skipping application PDF.');
+                return;
+            }
+
+            const formValues = app.formData || {};
+            const selectedEducation = getApplicationFormValue(formValues, 'arsimi');
+            const preferredUnit = getApplicationFormValue(formValues, 'reparti', 'njesia_preferuar');
+            const recruitmentPhase = getApplicationFormValue(formValues, 'fazaRekrutimit');
+            const applicantName = getApplicantFullName(formValues);
+            const questionnaireRows = buildApplicationResponseRows(questionnaireQuestions, formValues, ['pyetësori', 'pyetesori'], ['pyetësori_koment', 'pyetesori_koment']);
+            const healthRows = buildApplicationResponseRows(healthQuestions, formValues, ['shendetesor', 'shëndetesor'], ['shendetesor_koment', 'shëndetesor_koment']);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('FORMULARI I APLIKIMIT', 105, 15, { align: 'center' });
+            doc.text('PËR USHTAR/DETARË AKTIVË NË FORCAT E ARMATOSURA', 105, 22, { align: 'center' });
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            let y = 32;
+
+            y = addBlockText(doc, 'A) TË DHËNAT PERSONALE:', y, { fontStyle: 'bold' });
+            y = addBlockText(doc, `1. Emër: ${formValues.emri || ''}    Atësi: ${formValues.atesia || ''}    Mbiemër: ${formValues.mbiemri || ''}`, y);
+            y = addBlockText(doc, `2. Nr. i Kartës së Identitetit: ${formValues.nrPersonal || ''}`, y);
+            y = addBlockText(doc, `3. Gjinia: ${formValues.gjinia || ''}    Gjatësia: ${formValues.gjatësia || ''} cm`, y);
+            y = addBlockText(doc, `4. Datëlindja: ${formatDateForDisplay(formValues.datelindja)}    Vendlindja: ${formValues.vendlindja || ''}    Vendbanimi: ${formValues.vendbanimi || ''}`, y);
+            y = addBlockText(doc, `5. Kombësia: ${formValues.kombesia || ''}    Shtetësia: ${formValues.shtetesia || ''}`, y);
+
+            y = addBlockText(doc, 'B) ADRESA/KONTAKT:', y + 2, { fontStyle: 'bold' });
+            y = addBlockText(doc, `1. Adresa e vendbanimit: ${formValues.adresa || ''}`, y);
+            y = addBlockText(doc, `2. Nr kontakti: ${formValues.nrKontakti || ''}    Email: ${app.email || formValues.email || ''}`, y);
+
+            y = addBlockText(doc, 'C) TË DHËNA MBI ARSIMIMIN:', y + 2, { fontStyle: 'bold' });
+            y = addBlockText(doc, `1. Arsimi i kryer: ${selectedEducation}`, y);
+            y = addBlockText(doc, `2. Arsimi 9-vjeçar - Shkolla: ${formValues.emriShkollesNente || ''} | Nota mesatare: ${formValues.notaMesatareNente || ''}`, y);
+            y = addBlockText(doc, `3. Arsim i mesëm - Lloji: ${formValues.shkollaMesme || ''} | Emri: ${formValues.emriShkolles || ''}`, y);
+            y = addBlockText(doc, `Nota mesatare gjimnaz: ${formValues.notaMesatareGjimnaz || ''} | Nota mesatare profesionale: ${formValues.notaMesatareProfesionale || ''}`, y);
+            y = addBlockText(doc, `Profili profesional: ${formValues.profiliShkolles || ''}`, y);
+            y = addBlockText(doc, `4. Lloji i arsimit të lartë: ${formValues.llojiUniversitetit || ''} | Diploma: ${formValues.diploma || ''}`, y);
+            y = addBlockText(doc, `5. Universiteti/Fakulteti: ${formValues.emriShkollesLarte || ''}`, y);
+            y = addBlockText(doc, `6. Koha e kryerjes së studimeve të larta: ${formatDateForDisplay(formValues.dataFillimit)} - ${formatDateForDisplay(formValues.dataMbarimit)}`, y);
+            y = addBlockText(doc, `7. Reparti i preferuar: ${preferredUnit || '(Nuk është përzgjedhur)'}`, y);
+            y = addBlockText(doc, `8. Faza e rekrutimit: ${recruitmentPhase || '(Nuk është plotësuar)'}`, y);
+            y = addBlockText(doc, 'Ç) Struktura/Reparti Ushtarak ku dëshironi të shërbeni:', y + 4, { fontStyle: 'bold' });
+            y = addBlockText(doc, preferredUnit || '(Nuk është përzgjedhur)', y);
+            y = addBlockText(doc, 'Lexoni me kujdes secilën pyetje dhe vendosni shenjën “X” në kolonën PO ose JO.', y + 4);
+
+            y = ensurePageSpace(doc, y, 10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Tabela e Pyetjeve - Lexoni me kujdes secilën pyetje dhe shënoni PO ose JO.', 14, y);
+            doc.setFont('helvetica', 'normal');
+            y += 4;
+
+            doc.autoTable({
+                startY: y,
+                head: [['Nr', 'Pyetja', 'Përgjigje', 'Koment']],
+                body: questionnaireRows.map(row => [row.index + 1, row.question, (row.answer || '').toUpperCase(), row.comment || '']),
+                headStyles: { fillColor: [0, 51, 160] },
+                styles: { fontSize: 9, cellWidth: 'wrap' },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 100 },
+                    2: { cellWidth: 25, halign: 'center' },
+                    3: { cellWidth: 45 }
+                }
+            });
+
+            y = doc.lastAutoTable.finalY + 6;
+            y = addBlockText(doc, 'D) MOTIVI QË JU SHTYN TË SHËRBENI NË FORCAT E ARMATOSURA:', y, { fontStyle: 'bold' });
+            y = addBlockText(doc, formValues.motivi || '(Nuk është plotësuar)', y);
+
+            y = addBlockText(doc, 'Përsa më sipër, deklaroj nën përgjegjësinë time personale se informacioni që kam shënuar në këtë formular aplikimi është i vërtetë.', y + 4);
+            y = addBlockText(doc, `Aplikanti: ${applicantName || '________________'}`, y + 4);
+            y = addSignatureToPdf(doc, app.signature || formValues.firma, y + 2);
+
+            appendResponseTablePage(doc, 'PYETËSORI I APLIKIMIT', questionnaireRows.map(row => [
+                row.index + 1,
+                row.question,
+                (row.answer || '').toUpperCase(),
+                row.comment || ''
+            ]).filter(row => row[2] || row[3]));
+            appendHealthFormPage(doc, app);
+
+            doc.save(`Formulari_Aplikimit_${app.id || Date.now()}.pdf`);
         }
         
-        function generateAcceptancePdf(app) {
+        function generateAcceptancePdf(app, options = {}) {
             const doc = createPdfDocument();
             if (!doc) {
                 console.warn('jsPDF not available; skipping acceptance PDF.');
@@ -1535,7 +1722,15 @@
             appendHealthFormPage(doc, app);
             
             const fileName = `Formulari_Pranimit_${app.id || Date.now()}.pdf`;
+            if (options.returnBlob) {
+                return {
+                    fileName,
+                    blob: doc.output('blob')
+                };
+            }
+
             doc.save(fileName);
+            return { fileName };
         }
         // Benefits Editor Functions
         const defaultBenefits = [
