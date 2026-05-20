@@ -14,10 +14,6 @@
                 <a href="index.html" class="logo-text">
                     <h1>QENDRA E PERSONEL REKRUTIMIT</h1>
                 </a>
-                <a href="qpr-login.html" class="login-link" style="font-size: 14px; padding: 8px 15px;">
-                    Panel QPR
-                    <span class="login-arrow">→</span>
-                </a>
                 <div class="header-actions">
                     <span class="user-email" id="userEmail">Aplikant</span>
                     <button class="logout-btn" onclick="logout()">
@@ -175,6 +171,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="script.js"></script>
     <script>
         function formatDateForDisplay(value) {
@@ -532,6 +530,305 @@
             const applications = JSON.parse(localStorage.getItem('applications') || '[]');
             const userApplications = applications.filter(app => app.email === email);
             return userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
+        }
+
+        function createPdfDocument() {
+            if (!window.jspdf || !window.jspdf.jsPDF) return null;
+            const { jsPDF } = window.jspdf;
+            return new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
+            });
+        }
+
+        function ensurePageSpace(doc, y, needed = 10) {
+            if (y + needed > 285) {
+                doc.addPage();
+                return 20;
+            }
+            return y;
+        }
+
+        function addBlockText(doc, text, y, options = {}) {
+            const { x = 14, maxWidth = 180, lineHeight = 6, fontStyle = 'normal' } = options;
+            doc.setFont('helvetica', fontStyle);
+            const lines = doc.splitTextToSize(text, maxWidth);
+            lines.forEach(line => {
+                y = ensurePageSpace(doc, y, lineHeight);
+                doc.text(line, x, y);
+                y += lineHeight;
+            });
+            return y;
+        }
+
+        function getIndexedFieldValue(values, prefixes, index) {
+            for (const prefix of prefixes) {
+                const value = values[`${prefix}[${index}]`];
+                if (value !== undefined && value !== null && value !== '') {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function appendResponseTablePage(doc, title, rows) {
+            if (!rows.length) {
+                return;
+            }
+
+            doc.addPage();
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text(title, 105, 18, { align: 'center' });
+
+            doc.autoTable({
+                startY: 26,
+                head: [['Nr', 'Pyetja', 'Përgjigja', 'Komenti']],
+                body: rows,
+                headStyles: { fillColor: [0, 51, 160] },
+                styles: { fontSize: 8.5, cellPadding: 2, overflow: 'linebreak', valign: 'middle' },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 102 },
+                    2: { cellWidth: 25, halign: 'center' },
+                    3: { cellWidth: 48 }
+                },
+                margin: { left: 12, right: 12, top: 26, bottom: 16 }
+            });
+        }
+
+        function getApplicationFormValue(formValues, ...keys) {
+            for (const key of keys) {
+                const value = formValues[key];
+                if (Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null && value !== '') {
+                    return value;
+                }
+            }
+            return '';
+        }
+
+        function getApplicantFullName(formValues) {
+            return [formValues.emri, formValues.atesia, formValues.mbiemri].filter(Boolean).join(' ');
+        }
+
+        function getApplicationPdfSubtitle(applicationType) {
+            const subtitleByType = {
+                'Ushtar ose Detar Aktiv': 'PËR USHTAR/DETARË AKTIVË NË FORCAT E ARMATOSURA',
+                'Ushtar Rezervist': 'PËR USHTAR REZERVIST NË FORCAT E ARMATOSURA',
+                'Nënoficer Rezervist': 'PËR NËNOFICER REZERVIST NË FORCAT E ARMATOSURA',
+                'Oficer Rezervist': 'PËR OFICER REZERVIST NË FORCAT E ARMATOSURA',
+                'Oficer, Studime në Akademinë e Forcave të Armatosura': 'PËR OFICER, STUDIME NË AKADEMINË E FORCAVE TË ARMATOSURA',
+                'Oficer, Studime jashtë vendit': 'PËR OFICER, STUDIME JASHTË VENDIT',
+                'Civil në FA': 'PËR CIVIL NË FORCAT E ARMATOSURA'
+            };
+
+            return subtitleByType[applicationType] || `PËR ${String(applicationType || 'APLIKIM NË FORCAT E ARMATOSURA').toUpperCase()}`;
+        }
+
+        function addSignatureToPdf(doc, signatureData, y, options = {}) {
+            if (!signatureData) {
+                return y;
+            }
+
+            const { x = 14, width = 50, height = 18, label = 'Firma:' } = options;
+            y = ensurePageSpace(doc, y, height + 10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(label, x, y);
+            doc.setFont('helvetica', 'normal');
+
+            try {
+                doc.addImage(signatureData, 'PNG', x + 18, y - 6, width, height);
+                return y + height + 4;
+            } catch (error) {
+                console.warn('Could not add signature image to PDF.', error);
+                return addBlockText(doc, 'Firma nuk mund të ngarkohej në PDF.', y + 4, { x });
+            }
+        }
+
+        function buildAcceptanceHealthRows(formData) {
+            return healthQuestions.map((question, index) => {
+                const answer = getIndexedFieldValue(formData, ['shendetesor', 'shëndetesor'], index);
+                const comment = getIndexedFieldValue(formData, ['shendetesor_koment', 'shëndetesor_koment'], index);
+
+                if (!answer && !comment) {
+                    return null;
+                }
+
+                const normalizedAnswer = String(answer || '').toUpperCase();
+                return [
+                    index + 1,
+                    question,
+                    normalizedAnswer === 'PO' ? 'X' : '',
+                    normalizedAnswer === 'JO' ? 'X' : '',
+                    formatDetailValue('', comment || '')
+                ];
+            }).filter(Boolean);
+        }
+
+        function appendHealthFormPage(doc, app) {
+            const formData = app.formData || {};
+            const healthRows = buildAcceptanceHealthRows(formData);
+
+            if (!healthRows.length) {
+                return;
+            }
+
+            doc.addPage();
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('FORMULAR VETËDEKLARIMI PËR GJENDJEN SHËNDETËSORE', 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text('TË KANDIDATIT PËR USHTARË/DETARË AKTIV', 105, 22, { align: 'center' });
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            let y = 32;
+            y = addBlockText(doc, `Emri: ${formData.emri || ''}    Atësia: ${formData.atesia || ''}    Mbiemri: ${formData.mbiemri || ''}`, y);
+            y = addBlockText(doc, `Datëlindja: ${formatDateForDisplay(formData.datelindja)}`, y);
+
+            doc.autoTable({
+                startY: y + 4,
+                head: [['Nr.', 'Probleme shëndetësore', 'Po', 'Jo', 'Koment']],
+                body: healthRows,
+                headStyles: { fillColor: [0, 102, 0] },
+                styles: { fontSize: 9, halign: 'center' },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    1: { cellWidth: 95, halign: 'left' },
+                    2: { cellWidth: 15 },
+                    3: { cellWidth: 15 },
+                    4: { cellWidth: 55, halign: 'left' }
+                }
+            });
+
+            y = doc.lastAutoTable.finalY + 12;
+            const applicantName = [formData.emri, formData.atesia, formData.mbiemri].filter(Boolean).join(' ');
+            y = addBlockText(doc, 'Shtetasi', y);
+            y = addBlockText(doc, applicantName || '____________________________________', y + 2);
+            y = addBlockText(doc, '(Emri     Atësia     Mbiemri)', y + 2);
+            y = addSignatureToPdf(doc, app.signature || formData.firma, y + 2, { x: 14, label: 'Firma:' });
+        }
+
+        function buildApplicationResponseRows(questions, formData, answerPrefixes, commentPrefixes) {
+            return questions.map((question, index) => {
+                const answer = getIndexedFieldValue(formData, answerPrefixes, index);
+                const comment = commentPrefixes ? getIndexedFieldValue(formData, commentPrefixes, index) : '';
+                return {
+                    index,
+                    question,
+                    answer,
+                    comment
+                };
+            });
+        }
+
+        function generateApplicationPdf(app) {
+            const doc = createPdfDocument();
+            if (!doc) {
+                console.warn('jsPDF not available; skipping application PDF.');
+                return;
+            }
+
+            const formValues = app.formData || {};
+            const subtitleLines = doc.splitTextToSize(getApplicationPdfSubtitle(app.type), 170);
+            const selectedEducation = getApplicationFormValue(formValues, 'arsimi');
+            const preferredUnit = getApplicationFormValue(formValues, 'reparti', 'njesia_preferuar');
+            const recruitmentPhase = getApplicationFormValue(formValues, 'fazaRekrutimit');
+            const applicantName = getApplicantFullName(formValues);
+            const questionnaireRows = buildApplicationResponseRows(questionnaireQuestions, formValues, ['pyetësori', 'pyetesori'], ['pyetësori_koment', 'pyetesori_koment']);
+            const healthRows = buildApplicationResponseRows(healthQuestions, formValues, ['shendetesor', 'shëndetesor'], ['shendetesor_koment', 'shëndetesor_koment']);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('FORMULARI I APLIKIMIT', 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            subtitleLines.forEach((line, index) => {
+                doc.text(line, 105, 22 + (index * 6), { align: 'center' });
+            });
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            let y = 32 + ((subtitleLines.length - 1) * 6);
+
+            y = addBlockText(doc, 'A) TË DHËNAT PERSONALE:', y, { fontStyle: 'bold' });
+            y = addBlockText(doc, `1. Emër: ${formValues.emri || ''}    Atësi: ${formValues.atesia || ''}    Mbiemër: ${formValues.mbiemri || ''}`, y);
+            y = addBlockText(doc, `2. Nr. i Kartës së Identitetit: ${formValues.nrPersonal || ''}`, y);
+            y = addBlockText(doc, `3. Gjinia: ${formValues.gjinia || ''}    Gjatësia: ${formValues.gjatësia || ''} cm`, y);
+            y = addBlockText(doc, `4. Datëlindja: ${formatDateForDisplay(formValues.datelindja)}    Vendlindja: ${formValues.vendlindja || ''}    Vendbanimi: ${formValues.vendbanimi || ''}`, y);
+            y = addBlockText(doc, `5. Kombësia: ${formValues.kombesia || ''}    Shtetësia: ${formValues.shtetesia || ''}`, y);
+
+            y = addBlockText(doc, 'B) ADRESA/KONTAKT:', y + 2, { fontStyle: 'bold' });
+            y = addBlockText(doc, `1. Adresa e vendbanimit: ${formValues.adresa || ''}`, y);
+            y = addBlockText(doc, `2. Nr kontakti: ${formValues.nrKontakti || ''}    Email: ${app.email || formValues.email || ''}`, y);
+
+            y = addBlockText(doc, 'C) TË DHËNA MBI ARSIMIMIN:', y + 2, { fontStyle: 'bold' });
+            y = addBlockText(doc, `1. Arsimi i kryer: ${selectedEducation}`, y);
+            y = addBlockText(doc, `2. Arsimi 9-vjeçar - Shkolla: ${formValues.emriShkollesNente || ''} | Nota mesatare: ${formValues.notaMesatareNente || ''}`, y);
+            y = addBlockText(doc, `3. Arsim i mesëm - Lloji: ${formValues.shkollaMesme || ''} | Emri: ${formValues.emriShkolles || ''}`, y);
+            y = addBlockText(doc, `Nota mesatare gjimnaz: ${formValues.notaMesatareGjimnaz || ''} | Nota mesatare profesionale: ${formValues.notaMesatareProfesionale || ''}`, y);
+            y = addBlockText(doc, `Profili profesional: ${formValues.profiliShkolles || ''}`, y);
+            y = addBlockText(doc, `4. Lloji i arsimit të lartë: ${formValues.llojiUniversitetit || ''} | Diploma: ${formValues.diploma || ''}`, y);
+            y = addBlockText(doc, `5. Universiteti/Fakulteti: ${formValues.emriShkollesLarte || ''}`, y);
+            y = addBlockText(doc, `6. Koha e kryerjes së studimeve të larta: ${formatDateForDisplay(formValues.dataFillimit)} - ${formatDateForDisplay(formValues.dataMbarimit)}`, y);
+            y = addBlockText(doc, `7. Reparti i preferuar: ${preferredUnit || '(Nuk është përzgjedhur)'}`, y);
+            y = addBlockText(doc, `8. Faza e rekrutimit: ${recruitmentPhase || '(Nuk është plotësuar)'}`, y);
+            y = addBlockText(doc, 'Ç) Struktura/Reparti Ushtarak ku dëshironi të shërbeni:', y + 4, { fontStyle: 'bold' });
+            y = addBlockText(doc, preferredUnit || '(Nuk është përzgjedhur)', y);
+            y = addBlockText(doc, 'Lexoni me kujdes secilën pyetje dhe vendosni shenjën “X” në kolonën PO ose JO.', y + 4);
+
+            y = ensurePageSpace(doc, y, 10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Tabela e Pyetjeve - Lexoni me kujdes secilën pyetje dhe shënoni PO ose JO.', 14, y);
+            doc.setFont('helvetica', 'normal');
+            y += 4;
+
+            doc.autoTable({
+                startY: y,
+                head: [['Nr', 'Pyetja', 'Përgjigje', 'Koment']],
+                body: questionnaireRows.map(row => [row.index + 1, row.question, (row.answer || '').toUpperCase(), row.comment || '']),
+                headStyles: { fillColor: [0, 51, 160] },
+                styles: { fontSize: 9, cellWidth: 'wrap' },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 100 },
+                    2: { cellWidth: 25, halign: 'center' },
+                    3: { cellWidth: 45 }
+                }
+            });
+
+            y = doc.lastAutoTable.finalY + 6;
+            y = addBlockText(doc, 'D) MOTIVI QË JU SHTYN TË SHËRBENI NË FORCAT E ARMATOSURA:', y, { fontStyle: 'bold' });
+            y = addBlockText(doc, formValues.motivi || '(Nuk është plotësuar)', y);
+
+            y = addBlockText(doc, 'Përsa më sipër, deklaroj nën përgjegjësinë time personale se informacioni që kam shënuar në këtë formular aplikimi është i vërtetë.', y + 4);
+            y = addBlockText(doc, `Aplikanti: ${applicantName || '________________'}`, y + 4);
+            y = addSignatureToPdf(doc, app.signature || formValues.firma, y + 2);
+
+            appendResponseTablePage(doc, 'PYETËSORI I APLIKIMIT', questionnaireRows.map(row => [
+                row.index + 1,
+                row.question,
+                (row.answer || '').toUpperCase(),
+                row.comment || ''
+            ]).filter(row => row[2] || row[3]));
+            appendHealthFormPage(doc, app);
+
+            doc.save(`Formulari_Aplikimit_${app.id || Date.now()}.pdf`);
+        }
+
+        function downloadApplicationPdf(appIndex) {
+            const app = window.userApplications[appIndex];
+            if (!app) {
+                alert('Aplikimi nuk u gjet!');
+                return;
+            }
+
+            try {
+                generateApplicationPdf(app);
+            } catch (error) {
+                console.error('Failed to generate application PDF:', error);
+                alert('Gabim gjatë gjenerimit të PDF-së së aplikimit. Ju lutem provoni përsëri.');
+            }
         }
 
         // Kontrollo nëse përdoruesi është i loguar
@@ -1025,6 +1322,26 @@
                     </div>
                 `;
             }
+
+            detailsHTML += `
+                <div class="detail-section">
+                    <h3 class="detail-title">Dokumenti i Aplikimit</h3>
+                    <div class="documents-section">
+                        <div class="document-card">
+                            <div class="document-card-header">
+                                <span class="document-icon">📄</span>
+                                <span class="document-card-name">Formulari_Aplikimit_${app.id || 'N/A'}.pdf</span>
+                            </div>
+                            <div class="document-card-info">
+                                <span class="document-card-size">PDF</span>
+                                <button class="download-document-btn" onclick="downloadApplicationPdf(${index})">
+                                    <span>⬇</span> Shkarko
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
             
             // Comments from QPR
             if (app.comments) {

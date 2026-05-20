@@ -1167,6 +1167,20 @@
             return [formValues.emri, formValues.atesia, formValues.mbiemri].filter(Boolean).join(' ');
         }
 
+        function getApplicationPdfSubtitle(applicationType) {
+            const subtitleByType = {
+                'Ushtar ose Detar Aktiv': 'PËR USHTAR/DETARË AKTIVË NË FORCAT E ARMATOSURA',
+                'Ushtar Rezervist': 'PËR USHTAR REZERVIST NË FORCAT E ARMATOSURA',
+                'Nënoficer Rezervist': 'PËR NËNOFICER REZERVIST NË FORCAT E ARMATOSURA',
+                'Oficer Rezervist': 'PËR OFICER REZERVIST NË FORCAT E ARMATOSURA',
+                'Oficer, Studime në Akademinë e Forcave të Armatosura': 'PËR OFICER, STUDIME NË AKADEMINË E FORCAVE TË ARMATOSURA',
+                'Oficer, Studime jashtë vendit': 'PËR OFICER, STUDIME JASHTË VENDIT',
+                'Civil në FA': 'PËR CIVIL NË FORCAT E ARMATOSURA'
+            };
+
+            return subtitleByType[applicationType] || `PËR ${String(applicationType || 'APLIKIM NË FORCAT E ARMATOSURA').toUpperCase()}`;
+        }
+
         function addSignatureToPdf(doc, signatureData, y, options = {}) {
             if (!signatureData) {
                 return y;
@@ -1330,6 +1344,7 @@
             }
 
             const formValues = app.formData || {};
+            const subtitleLines = doc.splitTextToSize(getApplicationPdfSubtitle(app.type), 170);
             const selectedEducation = getApplicationFormValue(formValues, 'arsimi');
             const preferredUnit = getApplicationFormValue(formValues, 'reparti', 'njesia_preferuar');
             const recruitmentPhase = getApplicationFormValue(formValues, 'fazaRekrutimit');
@@ -1340,11 +1355,14 @@
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(14);
             doc.text('FORMULARI I APLIKIMIT', 105, 15, { align: 'center' });
-            doc.text('PËR USHTAR/DETARË AKTIVË NË FORCAT E ARMATOSURA', 105, 22, { align: 'center' });
+            doc.setFontSize(12);
+            subtitleLines.forEach((line, index) => {
+                doc.text(line, 105, 22 + (index * 6), { align: 'center' });
+            });
 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
-            let y = 32;
+            let y = 32 + ((subtitleLines.length - 1) * 6);
 
             y = addBlockText(doc, 'A) TË DHËNAT PERSONALE:', y, { fontStyle: 'bold' });
             y = addBlockText(doc, `1. Emër: ${formValues.emri || ''}    Atësi: ${formValues.atesia || ''}    Mbiemër: ${formValues.mbiemri || ''}`, y);

@@ -122,6 +122,50 @@ function handleDateBlur(event) {
     }
     
     const digits = input.value.replace(/\D/g, '');
+
+    function isValidGradeValue(value) {
+        if (!value) return true;
+
+        const normalizedValue = String(value).trim();
+        if (!/^\d{1,2}([.,]\d{1,2})?$/.test(normalizedValue)) {
+            return false;
+        }
+
+        const numericValue = Number(normalizedValue.replace(',', '.'));
+        return !Number.isNaN(numericValue) && numericValue >= 0 && numericValue <= 10;
+    }
+
+    function handleGradeInput(event) {
+        const input = event.target;
+        input.setCustomValidity('');
+    }
+
+    function handleGradeBlur(event) {
+        const input = event.target;
+        const value = input.value.trim();
+
+        if (!value) {
+            input.setCustomValidity('');
+            return;
+        }
+
+        if (!isValidGradeValue(value)) {
+            input.setCustomValidity('Vendosni një notë nga 0 deri në 10, me maksimumi 2 shifra dhjetore.');
+            input.reportValidity();
+            return;
+        }
+
+        input.setCustomValidity('');
+    }
+
+    function setupGradeInputs() {
+        const gradeInputs = document.querySelectorAll('#notaMesatareNente, #notaMesatareGjimnaz, #notaMesatareProfesionale');
+        gradeInputs.forEach(input => {
+            input.dataset.gradeField = 'true';
+            input.addEventListener('input', handleGradeInput);
+            input.addEventListener('blur', handleGradeBlur);
+        });
+    }
     if (digits.length !== 8) {
         input.setCustomValidity('Përdorni formatin dd-mm-vvvv');
         input.reportValidity();
@@ -190,6 +234,20 @@ function getCurrentApplicationType() {
 
     const title = document.title || '';
     return title.replace(/^QPR\s*-\s*Aplikimi për\s*/i, '').trim() || 'Ushtar ose Detar Aktiv';
+}
+
+function getApplicationPdfSubtitle(applicationType) {
+    const subtitleByType = {
+        'Ushtar ose Detar Aktiv': 'PËR USHTAR/DETARË AKTIVË NË FORCAT E ARMATOSURA',
+        'Ushtar Rezervist': 'PËR USHTAR REZERVIST NË FORCAT E ARMATOSURA',
+        'Nënoficer Rezervist': 'PËR NËNOFICER REZERVIST NË FORCAT E ARMATOSURA',
+        'Oficer Rezervist': 'PËR OFICER REZERVIST NË FORCAT E ARMATOSURA',
+        'Oficer, Studime në Akademinë e Forcave të Armatosura': 'PËR OFICER, STUDIME NË AKADEMINË E FORCAVE TË ARMATOSURA',
+        'Oficer, Studime jashtë vendit': 'PËR OFICER, STUDIME JASHTË VENDIT',
+        'Civil në FA': 'PËR CIVIL NË FORCAT E ARMATOSURA'
+    };
+
+    return subtitleByType[applicationType] || `PËR ${String(applicationType || 'APLIKIM NË FORCAT E ARMATOSURA').toUpperCase()}`;
 }
 
 function getSelectedValues(formValues, key) {
@@ -625,6 +683,7 @@ document.addEventListener('DOMContentLoaded', function() {
     generateShendetesorTable();
     initSignature();
     setupDateInputs();
+    setupGradeInputs();
     
     // Setup conditional fields
     const denuarField = document.getElementById('denuar');
@@ -768,6 +827,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     form.addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    const invalidGradeInput = Array.from(this.querySelectorAll('[data-grade-field="true"]')).find(input => !isValidGradeValue(input.value.trim()));
+    if (invalidGradeInput) {
+        invalidGradeInput.setCustomValidity('Vendosni një notë nga 0 deri në 10, me maksimumi 2 shifra dhjetore.');
+        invalidGradeInput.reportValidity();
+        invalidGradeInput.focus();
+        return;
+    }
     
     // Get email - use logged in email if available
     const email = isLoggedIn && loggedInEmail ? loggedInEmail : document.getElementById('accountEmail').value;
@@ -996,21 +1063,26 @@ function generateApplicationPdf(applicationData, formValues) {
     const doc = createPdfDocument();
     if (!doc) return;
 
+    const applicationType = applicationData.type || getCurrentApplicationType();
     const selectedEducation = getFormValue(formValues, 'arsimi');
     const preferredUnit = getFormValue(formValues, 'reparti', 'njesia_preferuar');
     const recruitmentPhase = getFormValue(formValues, 'fazaRekrutimit');
     const applicantName = getApplicantFullName(formValues);
     const questionnaireRows = buildResponseRows(pyetësoriQuestions, formValues, ['pyetësori', 'pyetesori'], ['pyetësori_koment', 'pyetesori_koment']);
     const healthRows = buildResponseRows(shendetesorQuestions, formValues, ['shendetesor', 'shëndetesor'], ['shendetesor_koment', 'shëndetesor_koment']);
+    const subtitleLines = doc.splitTextToSize(getApplicationPdfSubtitle(applicationType), 170);
     
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.text('FORMULARI I APLIKIMIT', 105, 15, { align: 'center' });
-    doc.text('PËR USHTAR/DETARË AKTIVË NË FORCAT E ARMATOSURA', 105, 22, { align: 'center' });
+    doc.setFontSize(12);
+    subtitleLines.forEach((line, index) => {
+        doc.text(line, 105, 22 + (index * 6), { align: 'center' });
+    });
     
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    let y = 32;
+    let y = 32 + ((subtitleLines.length - 1) * 6);
     
     y = addBlockText(doc, 'A) TË DHËNAT PERSONALE:', y, { fontStyle: 'bold' });
     y = addBlockText(doc, `1. Emër: ${formValues.emri || ''}    Atësi: ${formValues.atesia || ''}    Mbiemër: ${formValues.mbiemri || ''}`, y);
