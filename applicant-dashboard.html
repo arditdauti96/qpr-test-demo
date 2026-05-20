@@ -198,11 +198,6 @@
                     const [, year, month, day] = isoMatch;
                     return `${day}-${month}-${year}`;
                 }
-                
-                const parsed = Date.parse(value);
-                if (!isNaN(parsed)) {
-                    return formatDateForDisplay(new Date(parsed));
-                }
             }
             
             return value;
@@ -228,11 +223,6 @@
                     const [, year, month, day] = isoMatch;
                     const dateObj = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
                     return dateObj.getTime();
-                }
-                
-                const parsed = Date.parse(value);
-                if (!isNaN(parsed)) {
-                    return parsed;
                 }
             }
             
@@ -355,9 +345,13 @@
                     return 'Imazh i ruajtur';
                 }
 
-                const formattedDate = formatDateForDisplay(value);
-                if (formattedDate && formattedDate !== value) {
-                    return formattedDate;
+                const dateKeys = new Set(['datelindja', 'birthDate', 'submittedDate', 'dataFillimit', 'dataMbarimit']);
+                const shouldFormatAsDate = dateKeys.has(key) || /^(\d{2})-(\d{2})-(\d{4})$/.test(value) || /^(\d{4})-(\d{2})-(\d{2})$/.test(value);
+                if (shouldFormatAsDate) {
+                    const formattedDate = formatDateForDisplay(value);
+                    if (formattedDate) {
+                        return formattedDate;
+                    }
                 }
             }
 
@@ -473,20 +467,20 @@
             const level = getEducationFieldValue(app, 'arsimi', 'level');
             const shkollaMesme = getEducationFieldValue(app, 'shkollaMesme');
             const rows = [
-                ['Niveli i Arsimit', level],
-                ['Emri i shkollës 9-vjeçare', getEducationFieldValue(app, 'emriShkollesNente')],
-                ['Nota mesatare e klasës së 9-të', getEducationFieldValue(app, 'notaMesatareNente')],
-                ['Lloji i shkollës së mesme', shkollaMesme],
-                ['Emri i shkollës së mesme', getEducationFieldValue(app, 'emriShkolles', 'institution')],
-                ['Nota mesatare e gjimnazit', getEducationFieldValue(app, 'notaMesatareGjimnaz')],
-                ['Nota mesatare e shkollës profesionale', getEducationFieldValue(app, 'notaMesatareProfesionale')],
-                ['Profili i shkollës profesionale', getEducationFieldValue(app, 'profiliShkolles')],
-                ['Lloji i universitetit', getEducationFieldValue(app, 'llojiUniversitetit')],
-                ['Diploma', getEducationFieldValue(app, 'diploma')],
-                ['Emri i shkollës së lartë', getEducationFieldValue(app, 'emriShkollesLarte')],
-                ['Data e fillimit të shkollës së lartë', getEducationFieldValue(app, 'dataFillimit')],
-                ['Data e mbarimit të shkollës së lartë', getEducationFieldValue(app, 'dataMbarimit')],
-                ['Viti i Diplomimit', getEducationFieldValue(app, 'graduationYear')]
+                ['Niveli i Arsimit', level, 'arsimi'],
+                ['Emri i shkollës 9-vjeçare', getEducationFieldValue(app, 'emriShkollesNente'), 'emriShkollesNente'],
+                ['Nota mesatare e klasës së 9-të', getEducationFieldValue(app, 'notaMesatareNente'), 'notaMesatareNente'],
+                ['Lloji i shkollës së mesme', shkollaMesme, 'shkollaMesme'],
+                ['Emri i shkollës së mesme', getEducationFieldValue(app, 'emriShkolles', 'institution'), 'emriShkolles'],
+                ['Nota mesatare e gjimnazit', getEducationFieldValue(app, 'notaMesatareGjimnaz'), 'notaMesatareGjimnaz'],
+                ['Nota mesatare e shkollës profesionale', getEducationFieldValue(app, 'notaMesatareProfesionale'), 'notaMesatareProfesionale'],
+                ['Profili i shkollës profesionale', getEducationFieldValue(app, 'profiliShkolles'), 'profiliShkolles'],
+                ['Lloji i universitetit', getEducationFieldValue(app, 'llojiUniversitetit'), 'llojiUniversitetit'],
+                ['Diploma', getEducationFieldValue(app, 'diploma'), 'diploma'],
+                ['Emri i shkollës së lartë', getEducationFieldValue(app, 'emriShkollesLarte'), 'emriShkollesLarte'],
+                ['Data e fillimit të shkollës së lartë', getEducationFieldValue(app, 'dataFillimit'), 'dataFillimit'],
+                ['Data e mbarimit të shkollës së lartë', getEducationFieldValue(app, 'dataMbarimit'), 'dataMbarimit'],
+                ['Viti i Diplomimit', getEducationFieldValue(app, 'graduationYear'), 'graduationYear']
             ].filter(([, value]) => value !== undefined && value !== null && value !== '');
 
             if (rows.length === 0) {
@@ -497,10 +491,10 @@
                 <div class="detail-section">
                     <h3 class="detail-title">${escapeHtml(title)}</h3>
                     <div class="detail-grid">
-                        ${rows.map(([label, value]) => `
+                        ${rows.map(([label, value, key]) => `
                             <div class="detail-item">
                                 <span class="detail-label">${escapeHtml(label)}:</span>
-                                <span class="detail-value">${escapeHtml(formatDetailValue('', value))}</span>
+                                <span class="detail-value">${escapeHtml(formatDetailValue(key, value))}</span>
                             </div>
                         `).join('')}
                     </div>

@@ -226,11 +226,6 @@
                     const [, year, month, day] = isoMatch;
                     return `${day}-${month}-${year}`;
                 }
-                
-                const parsed = Date.parse(value);
-                if (!isNaN(parsed)) {
-                    return formatDateForDisplay(new Date(parsed));
-                }
             }
             
             return value;
@@ -256,11 +251,6 @@
                     const [, year, month, day] = isoMatch;
                     const dateObj = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
                     return dateObj.getTime();
-                }
-                
-                const parsed = Date.parse(value);
-                if (!isNaN(parsed)) {
-                    return parsed;
                 }
             }
             

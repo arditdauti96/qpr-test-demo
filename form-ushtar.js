@@ -82,11 +82,6 @@ function formatDateValue(value) {
         if (displayMatch) {
             return value;
         }
-        
-        const parsed = Date.parse(value);
-        if (!isNaN(parsed)) {
-            return formatDateValue(new Date(parsed));
-        }
     }
     
     return value;
@@ -175,6 +170,26 @@ function getFormValue(formValues, ...keys) {
         }
     }
     return '';
+}
+
+function getCurrentApplicationType() {
+    const path = window.location.pathname.split('/').pop() || '';
+    const typeByPage = {
+        'form-ushtar.html': 'Ushtar ose Detar Aktiv',
+        'form-ushtar-rezervist.html': 'Ushtar Rezervist',
+        'form-nenoficer-rezervist.html': 'Nënoficer Rezervist',
+        'form-oficer-rezervist.html': 'Oficer Rezervist',
+        'form-oficer-akademi.html': 'Oficer, Studime në Akademinë e Forcave të Armatosura',
+        'form-oficer-jasht.html': 'Oficer, Studime jashtë vendit',
+        'form-civil.html': 'Civil në FA'
+    };
+
+    if (typeByPage[path]) {
+        return typeByPage[path];
+    }
+
+    const title = document.title || '';
+    return title.replace(/^QPR\s*-\s*Aplikimi për\s*/i, '').trim() || 'Ushtar ose Detar Aktiv';
 }
 
 function getSelectedValues(formValues, key) {
@@ -791,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const formValues = serializeFormData(formData);
     const applicationData = {
         id: Date.now().toString(), // Generate unique ID
-        type: 'Ushtar ose Detar Aktiv',
+        type: getCurrentApplicationType(),
         email: email,
         password: password, // Në prodhim, duhet të hash-ojmë
         submittedDate: formatDateValue(new Date()),

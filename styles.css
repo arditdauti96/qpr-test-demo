@@ -5327,6 +5327,7 @@ body.application-body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .detail-label {
@@ -5340,6 +5341,9 @@ body.application-body {
     font-size: 16px;
     color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .status-badge {
