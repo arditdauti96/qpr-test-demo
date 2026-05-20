@@ -28,6 +28,24 @@ Sistem modern për rekrutimin e personelit në Forcat e Armatosura të Shqipëri
    - Klikoni "Please log in" për të hapur formularin e login
    - Karousel-i ndryshon automatikisht çdo 5 sekonda
 
+## GitHub Pages
+
+Repo-ja është përgatitur për deploy testues në GitHub Pages.
+
+1. Hapni `Settings > Pages` në GitHub.
+2. Te `Source`, zgjidhni `GitHub Actions`.
+3. Pas push-it të radhës në `main`, workflow `Deploy GitHub Pages` do ta publikojë faqen.
+
+URL-ja zakonisht do të jetë në formatin:
+
+```text
+https://USERNAME.github.io/REPO/
+```
+
+Shënim i rëndësishëm:
+- Projekti përdor `localStorage`, prandaj aplikimet ruhen vetëm në browser-in e përdoruesit.
+- GitHub Pages është i përshtatshëm për testim të UI/rrjedhës statike, jo për ndarje reale të të dhënave mes pajisjeve ose përdoruesve të ndryshëm.
+
 ## Struktura e Projektit
 
 ```
@@ -51,6 +69,7 @@ QPR/
 
 - Formularët aktualisht shfaqin vetëm alert-e. Për funksionalitet të plotë, duhet integruar me një backend.
 - Imazhet aktualisht janë placeholder-e. Zëvendësojini me imazhe reale kur të keni.
+- Për GitHub Pages nuk nevojitet server lokal ose backend, por të dhënat nuk sinkronizohen mes shfletuesve.
 
 ## Autor
 

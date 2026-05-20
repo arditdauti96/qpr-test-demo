@@ -53,6 +53,27 @@ Pastaj hapni: `http://localhost:8000`
 npx http-server -p 8000
 ```
 
+## Metoda 5: GitHub Pages (Për Testim Online)
+
+Repo-ja është përgatitur për GitHub Pages me workflow automatik deploy.
+
+1. Hapni repo-n në GitHub.
+2. Shkoni te `Settings > Pages`.
+3. Te `Source`, zgjidhni `GitHub Actions`.
+4. Bëni një push në branch `main`.
+5. Prisni që workflow `Deploy GitHub Pages` të përfundojë.
+
+URL-ja e testimit zakonisht do të jetë:
+
+```text
+https://USERNAME.github.io/REPO/
+```
+
+### Kufizim i rëndësishëm
+
+- Projekti përdor `localStorage`, prandaj të dhënat ruhen vetëm në browser-in e atij përdoruesi.
+- Admini dhe aplikanti do të ndajnë të dhëna vetëm në të njëjtin browser/profil, jo mes pajisjeve të ndryshme.
+
 ## Shënime:
 
 - **Nëse keni error me localhost:** Thjesht hapni `index.html` direkt në browser
