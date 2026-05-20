@@ -526,6 +526,15 @@
             `;
         }
 
+        function refreshAdminDashboardData() {
+            loadApplications();
+
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab?.id === 'statsTab') {
+                loadDetailedStats();
+            }
+        }
+
         // Check if admin is logged in
         window.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = localStorage.getItem('qprLoggedIn');
@@ -546,7 +555,7 @@
                 addTestDataSilent();
             }
             
-            loadApplications();
+            refreshAdminDashboardData();
             loadStats();
             
             const filterInputs = document.querySelectorAll('input[name="statusFilter"], input[name="typeFilter"]');
@@ -563,6 +572,20 @@
                 filtersPanel.style.maxHeight = filtersPanel.scrollHeight + 'px';
             }
             ['status', 'type'].forEach(group => toggleFilterGroup(group, false));
+        });
+
+        window.addEventListener('storage', function(event) {
+            if (event.key !== 'applications' && event.key !== 'users') {
+                return;
+            }
+
+            const isLoggedIn = localStorage.getItem('qprLoggedIn');
+            const email = localStorage.getItem('qprEmail');
+            if (!isLoggedIn || !email) {
+                return;
+            }
+
+            refreshAdminDashboardData();
         });
 
         function logout() {
@@ -988,6 +1011,11 @@
                             ✅ Aprovo
                         </button>
                     ` : ''}
+                    ${currentStatus === 'approved' ? `
+                        <button class="action-btn approve-btn" onclick="downloadAcceptancePdf(${index})">
+                            📄 Shkarko Formularin e Pranimit
+                        </button>
+                    ` : ''}
                     ${currentStatus !== 'reviewed' && currentStatus !== 'approved' ? `
                         <button class="action-btn review-btn" onclick="updateApplicationStatus(${index}, 'reviewed')">
                             👀 Shqyrto
@@ -1030,8 +1058,13 @@
                 }
                 
                 // Reload
-                loadApplications();
-                closeApplicationModal();
+                refreshAdminDashboardData();
+
+                if (newStatus === 'approved') {
+                    showApplicationDetails(index);
+                } else {
+                    closeApplicationModal();
+                }
                 
                 alert(`Aplikimi u ${newStatus === 'approved' ? 'aprova' : newStatus === 'rejected' ? 'refuzua' : 'shqyrtua'} me sukses!`);
             }
@@ -1052,7 +1085,7 @@
                 localStorage.setItem('applications', JSON.stringify(applications));
                 
                 // Reload
-                loadApplications();
+                refreshAdminDashboardData();
                 closeApplicationModal();
                 showApplicationDetails(index);
                 
@@ -1181,6 +1214,20 @@
             return subtitleByType[applicationType] || `PËR ${String(applicationType || 'APLIKIM NË FORCAT E ARMATOSURA').toUpperCase()}`;
         }
 
+        function getAcceptancePdfSubtitle(applicationType) {
+            const subtitleByType = {
+                'Ushtar ose Detar Aktiv': 'TË APLIKANTIT PËR USHTAR/DETAR AKTIV',
+                'Ushtar Rezervist': 'TË APLIKANTIT PËR USHTAR REZERVIST',
+                'Nënoficer Rezervist': 'TË APLIKANTIT PËR NËNOFICER REZERVIST',
+                'Oficer Rezervist': 'TË APLIKANTIT PËR OFICER REZERVIST',
+                'Oficer, Studime në Akademinë e Forcave të Armatosura': 'TË APLIKANTIT PËR OFICER, STUDIME NË AKADEMINË E FORCAVE TË ARMATOSURA',
+                'Oficer, Studime jashtë vendit': 'TË APLIKANTIT PËR OFICER, STUDIME JASHTË VENDIT',
+                'Civil në FA': 'TË APLIKANTIT PËR CIVIL NË FORCAT E ARMATOSURA'
+            };
+
+            return subtitleByType[applicationType] || `TË APLIKANTIT PËR ${String(applicationType || 'APLIKIM').toUpperCase()}`;
+        }
+
         function addSignatureToPdf(doc, signatureData, y, options = {}) {
             if (!signatureData) {
                 return y;
@@ -1203,6 +1250,31 @@
 
         function drawGuideLine(doc, startX, endX, y, offset = 1.6) {
             doc.line(startX, y + offset, endX, y + offset);
+        }
+
+        function drawGuideField(doc, label, value, x, y, options = {}) {
+            const { endX = 196, lineHeight = 6 } = options;
+            const safeValue = String(value || '');
+            const labelWidth = doc.getTextWidth(label);
+            const startX = x + labelWidth + 4;
+            const valueLines = doc.splitTextToSize(safeValue, Math.max(endX - startX - 2, 20));
+            const lines = valueLines.length > 0 ? valueLines : [''];
+
+            doc.text(label, x, y);
+            doc.setLineDash([1, 1.5], 0);
+            doc.setLineWidth(0.3);
+
+            lines.forEach((line, index) => {
+                const lineY = y + (index * lineHeight);
+                const lineStartX = index === 0 ? startX : x;
+                drawGuideLine(doc, lineStartX, endX, lineY);
+                if (line) {
+                    doc.text(line, lineStartX + 1, lineY);
+                }
+            });
+
+            doc.setLineDash([], 0);
+            return y + (lines.length * lineHeight) + 2;
         }
 
         function getIndexedFieldValue(values, prefixes, index) {
@@ -1445,6 +1517,7 @@
             const pob = personal.placeOfBirth || formData.vendlindja || '';
             const residence = personal.address || formData.vendbanimi || '';
             const idNumber = formData.nrPersonal || '';
+            const acceptanceSubtitleLines = doc.splitTextToSize(getAcceptancePdfSubtitle(app.type), 170);
             
             // PAGE 1 - Header (matching the official form exactly)
             // Space for coat of arms at top (approximately 15mm)
@@ -1465,8 +1538,10 @@
             doc.setFont('helvetica', 'bold');
             doc.text('FORMULAR I PRANIMIT TË DOKUMENTACIONIT', 105, y, { align: 'center' });
             y += 6;
-            doc.text('TË APLIKANTIT PËR USHTAR/DETAR AKTIV', 105, y, { align: 'center' });
-            y += 12;
+            acceptanceSubtitleLines.forEach((line, index) => {
+                doc.text(line, 105, y + (index * 6), { align: 'center' });
+            });
+            y += 6 + ((acceptanceSubtitleLines.length - 1) * 6) + 6;
             
             doc.setFontSize(10);
             
@@ -1477,79 +1552,15 @@
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            
-            // First line: Emri, Atësia, Mbiemri with long dotted lines
-            doc.text('• Emri', 14, y);
-            // Long dotted line for Emri
-            doc.setLineDash([1, 1.5], 0);
-            doc.setLineWidth(0.3);
-            const emriLineStart = 32;
-            const emriLineEnd = 58;
-            drawGuideLine(doc, emriLineStart, emriLineEnd, y);
-            if (firstName) {
-                doc.text(firstName, emriLineStart + 1, y);
-            }
-            
-            doc.text('Atësia', 62, y);
-            // Long dotted line for Atësia
-            const atesiaLineStart = 80;
-            const atesiaLineEnd = 106;
-            drawGuideLine(doc, atesiaLineStart, atesiaLineEnd, y);
-            if (fatherName) {
-                doc.text(fatherName, atesiaLineStart + 1, y);
-            }
-            
-            doc.text('Mbiemri', 110, y);
-            // Very long dotted line for Mbiemri (extends to end of page)
-            const mbiemriLineStart = 138;
-            const mbiemriLineEnd = 196;
-            drawGuideLine(doc, mbiemriLineStart, mbiemriLineEnd, y);
-            if (lastName) {
-                doc.text(lastName, mbiemriLineStart + 1, y);
-            }
-            doc.setLineDash([], 0); // Reset line style
-            y += 8;
-            
-            // Second line: Datëlindja, Vendlindja, Vendbanimi with dotted lines
-            doc.text('• Datëlindja', 14, y);
-            doc.setLineDash([1, 1.5], 0);
-            const datelindjaLineStart = 42;
-            const datelindjaLineEnd = 58;
-            drawGuideLine(doc, datelindjaLineStart, datelindjaLineEnd, y);
-            if (dob) {
-                doc.text(dob, datelindjaLineStart + 1, y);
-            }
-            
-            doc.text('Vendlindja', 62, y);
-            const vendlindjaLineStart = 90;
-            const vendlindjaLineEnd = 106;
-            drawGuideLine(doc, vendlindjaLineStart, vendlindjaLineEnd, y);
-            if (pob) {
-                doc.text(pob, vendlindjaLineStart + 1, y);
-            }
-            
-            doc.text('Vendbanimi', 110, y);
-            const vendbanimiLineStart = 148;
-            const vendbanimiLineEnd = 196;
-            drawGuideLine(doc, vendbanimiLineStart, vendbanimiLineEnd, y);
-            if (residence) {
-                const residenceLines = doc.splitTextToSize(residence, 45);
-                doc.text(residenceLines[0], vendbanimiLineStart + 1, y);
-            }
-            doc.setLineDash([], 0);
-            y += 8;
-            
-            // Third line: Numri i Kartës së identitetit with very long dotted line
-            doc.text('• Numri i Kartës së identitetit', 14, y);
-            doc.setLineDash([1, 1.5], 0);
-            const idLineStart = 75;
-            const idLineEnd = 196;
-            drawGuideLine(doc, idLineStart, idLineEnd, y);
-            if (idNumber) {
-                doc.text(idNumber, idLineStart + 1, y);
-            }
-            doc.setLineDash([], 0);
-            y += 12;
+
+            y = drawGuideField(doc, '• Emri', firstName, 14, y);
+            y = drawGuideField(doc, '• Atësia', fatherName, 14, y);
+            y = drawGuideField(doc, '• Mbiemri', lastName, 14, y);
+            y = drawGuideField(doc, '• Datëlindja', dob, 14, y);
+            y = drawGuideField(doc, '• Vendlindja', pob, 14, y);
+            y = drawGuideField(doc, '• Vendbanimi', residence, 14, y);
+            y = drawGuideField(doc, '• Numri i Kartës së identitetit', idNumber, 14, y);
+            y += 4;
             
             // Section II: Document Verification
             doc.setFont('helvetica', 'bold');
@@ -1576,7 +1587,7 @@
             doc.setLineDash([1, 1], 0);
             doc.setLineWidth(0.3);
             const line1End = doc.getTextWidth(text1);
-            doc.line(20 + line1End + 2, y - 2, 196, y - 2);
+            drawGuideLine(doc, 20 + line1End + 2, 196, y, 1.6);
             doc.setLineDash([], 0);
             y += 6;
             
@@ -1586,7 +1597,7 @@
             // Draw long horizontal line for specification
             doc.setLineDash([1, 1], 0);
             doc.setLineWidth(0.3);
-            doc.line(14, y - 2, 196, y - 2);
+            drawGuideLine(doc, 14, 196, y, 1.6);
             doc.setLineDash([], 0);
             y += 4;
             doc.setFontSize(8);
@@ -1601,7 +1612,7 @@
             doc.setLineDash([1, 1], 0);
             doc.setLineWidth(0.3);
             const line3End = doc.getTextWidth(text3);
-            doc.line(20 + line3End + 2, y - 2, 196, y - 2);
+            drawGuideLine(doc, 20 + line3End + 2, 196, y, 1.6);
             doc.setLineDash([], 0);
             y += 6;
             
@@ -1612,13 +1623,13 @@
             doc.setLineDash([1, 1], 0);
             doc.setLineWidth(0.3);
             const line4End = doc.getTextWidth(text4);
-            doc.line(20 + line4End + 2, y - 2, 196, y - 2);
+            drawGuideLine(doc, 20 + line4End + 2, 196, y, 1.6);
             doc.setLineDash([], 0);
             y += 4;
             // Draw long horizontal line for specification
             doc.setLineDash([1, 1], 0);
             doc.setLineWidth(0.3);
-            doc.line(14, y - 2, 196, y - 2);
+            drawGuideLine(doc, 14, 196, y, 1.6);
             doc.setLineDash([], 0);
             y += 4;
             doc.setFontSize(8);
@@ -2227,7 +2238,7 @@
             }
 
             // Rikarko aplikimet
-            loadApplications();
+            refreshAdminDashboardData();
             
             const totalNew = newApplications.length + newUsers.length;
             if (totalNew > 0) {
