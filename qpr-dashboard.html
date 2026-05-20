@@ -1170,6 +1170,69 @@
                 margin: { left: 12, right: 12, top: 26, bottom: 16 }
             });
         }
+
+        function buildAcceptanceHealthRows(formData) {
+            return healthQuestions.map((question, index) => {
+                const answer = getIndexedFieldValue(formData, ['shendetesor', 'shëndetesor'], index);
+                const comment = getIndexedFieldValue(formData, ['shendetesor_koment', 'shëndetesor_koment'], index);
+
+                if (!answer && !comment) {
+                    return null;
+                }
+
+                const normalizedAnswer = String(answer || '').toUpperCase();
+                return [
+                    index + 1,
+                    question,
+                    normalizedAnswer === 'PO' ? 'X' : '',
+                    normalizedAnswer === 'JO' ? 'X' : '',
+                    formatDetailValue('', comment || '')
+                ];
+            }).filter(Boolean);
+        }
+
+        function appendHealthFormPage(doc, app) {
+            const formData = app.formData || {};
+            const healthRows = buildAcceptanceHealthRows(formData);
+
+            if (!healthRows.length) {
+                return;
+            }
+
+            doc.addPage();
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('FORMULAR VETËDEKLARIMI PËR GJENDJEN SHËNDETËSORE', 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text('TË KANDIDATIT PËR USHTARË/DETARË AKTIV', 105, 22, { align: 'center' });
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            let y = 32;
+            y = addBlockText(doc, `Emri: ${formData.emri || ''}    Atësia: ${formData.atesia || ''}    Mbiemri: ${formData.mbiemri || ''}`, y);
+            y = addBlockText(doc, `Datëlindja: ${formatDateForDisplay(formData.datelindja)}`, y);
+
+            doc.autoTable({
+                startY: y + 4,
+                head: [['Nr.', 'Probleme shëndetësore', 'Po', 'Jo', 'Koment']],
+                body: healthRows,
+                headStyles: { fillColor: [0, 102, 0] },
+                styles: { fontSize: 9, halign: 'center' },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    1: { cellWidth: 95, halign: 'left' },
+                    2: { cellWidth: 15 },
+                    3: { cellWidth: 15 },
+                    4: { cellWidth: 55, halign: 'left' }
+                }
+            });
+
+            y = doc.lastAutoTable.finalY + 12;
+            const applicantName = [formData.emri, formData.atesia, formData.mbiemri].filter(Boolean).join(' ');
+            y = addBlockText(doc, 'Shtetasi', y);
+            y = addBlockText(doc, applicantName || '____________________________________', y + 2);
+            y = addBlockText(doc, '(Emri     Atësia     Mbiemri)', y + 2);
+        }
         
         function generateAcceptancePdf(app) {
             const doc = createPdfDocument();
@@ -1467,10 +1530,9 @@
             doc.text('Data: ____.____.________', 180, y, { align: 'right' });
 
             const questionnaireRows = buildPdfResponseRows(questionnaireQuestions, formData, ['pyetësori', 'pyetesori'], ['pyetësori_koment', 'pyetesori_koment']);
-            const healthRows = buildPdfResponseRows(healthQuestions, formData, ['shendetesor', 'shëndetesor'], ['shendetesor_koment', 'shëndetesor_koment']);
 
             appendResponseTablePage(doc, 'PYETËSORI I APLIKIMIT', questionnaireRows);
-            appendResponseTablePage(doc, 'FORMULARI I VETËDEKLARIMIT SHËNDETËSOR', healthRows);
+            appendHealthFormPage(doc, app);
             
             const fileName = `Formulari_Pranimit_${app.id || Date.now()}.pdf`;
             doc.save(fileName);

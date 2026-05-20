@@ -206,6 +206,62 @@ function buildResponseRows(questions, values, answerPrefixes, commentPrefixes = 
     });
 }
 
+function buildHealthFormTableRows(rows) {
+    return rows.map(row => {
+        const answer = (row.answer || '').toUpperCase();
+        return [
+            row.index + 1,
+            row.question,
+            answer === 'PO' ? 'X' : '',
+            answer === 'JO' ? 'X' : '',
+            row.comment || ''
+        ];
+    });
+}
+
+function renderHealthFormPage(doc, formValues, rows, options = {}) {
+    const { addPage = false } = options;
+
+    if (addPage) {
+        doc.addPage();
+    }
+
+    const applicantName = getApplicantFullName(formValues);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('FORMULAR VETËDEKLARIMI PËR GJENDJEN SHËNDETËSORE', 105, 15, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('TË KANDIDATIT PËR USHTARË/DETARË AKTIV', 105, 22, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    let y = 32;
+    y = addBlockText(doc, `Emri: ${formValues.emri || ''}    Atësia: ${formValues.atesia || ''}    Mbiemri: ${formValues.mbiemri || ''}`, y);
+    y = addBlockText(doc, `Datëlindja: ${formatDateValue(formValues.datelindja)}`, y);
+
+    doc.autoTable({
+        startY: y + 4,
+        head: [['Nr.', 'Probleme shëndetësore', 'Po', 'Jo', 'Koment']],
+        body: buildHealthFormTableRows(rows),
+        headStyles: { fillColor: [0, 102, 0] },
+        styles: { fontSize: 9, halign: 'center' },
+        columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 95, halign: 'left' },
+            2: { cellWidth: 15 },
+            3: { cellWidth: 15 },
+            4: { cellWidth: 55, halign: 'left' }
+        }
+    });
+
+    y = doc.lastAutoTable.finalY + 12;
+    y = addBlockText(doc, 'Shtetasi', y);
+    y = addBlockText(doc, applicantName || '____________________________________', y + 2);
+    y = addBlockText(doc, '(Emri     Atësia     Mbiemri)', y + 2);
+    y = addSignatureToPdf(doc, options.signature || formValues.firma, y + 2, { x: 14, label: 'Firma:' });
+}
+
 function appendResponseTablePage(doc, title, rows, options = {}) {
     const filteredRows = rows.filter(row => row.answer || row.comment);
     if (!filteredRows.length) {
@@ -987,10 +1043,10 @@ function generateApplicationPdf(applicationData, formValues) {
         ...row,
         answer: (row.answer || '').toUpperCase()
     })));
-    appendResponseTablePage(doc, 'FORMULARI I VETËDEKLARIMIT SHËNDETËSOR', healthRows.map(row => ({
-        ...row,
-        answer: (row.answer || '').toUpperCase()
-    })), { headStyles: { fillColor: [0, 102, 0] } });
+    renderHealthFormPage(doc, formValues, healthRows, {
+        addPage: true,
+        signature: applicationData.signature || formValues.firma
+    });
     
     doc.save(`Formulari_Aplikimit_${applicationData.id}.pdf`);
 }
@@ -1054,52 +1110,16 @@ function generateDeclarationPdf(applicationData, formValues) {
 function generateHealthPdf(applicationData, formValues) {
     const doc = createPdfDocument();
     if (!doc) return;
-
-    const applicantName = getApplicantFullName(formValues);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('FORMULAR VETËDEKLARIMI PËR GJENDJEN SHËNDETËSORE', 105, 15, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('TË KANDIDATIT PËR USHTARË/DETARË AKTIV', 105, 22, { align: 'center' });
-    
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    let y = 32;
-    y = addBlockText(doc, `Emri: ${formValues.emri || ''}    Atësia: ${formValues.atesia || ''}    Mbiemri: ${formValues.mbiemri || ''}`, y);
-    y = addBlockText(doc, `Datëlindja: ${formatDateValue(formValues.datelindja)}`, y);
-    
     const healthRows = buildResponseRows(shendetesorQuestions, formValues, ['shendetesor', 'shëndetesor'], ['shendetesor_koment', 'shëndetesor_koment']).map(row => {
-        const answer = (row.answer || '').toUpperCase();
-        return [
-            row.index + 1,
-            row.question,
-            answer === 'PO' ? 'X' : '',
-            answer === 'JO' ? 'X' : '',
-            row.comment || ''
-        ];
+        return {
+            ...row,
+            answer: (row.answer || '').toUpperCase()
+        };
     });
-    
-    doc.autoTable({
-        startY: y + 4,
-        head: [['Nr.', 'Probleme shëndetësore', 'Po', 'Jo', 'Koment']],
-        body: healthRows,
-        headStyles: { fillColor: [0, 102, 0] },
-        styles: { fontSize: 9, halign: 'center' },
-        columnStyles: {
-            0: { cellWidth: 10 },
-            1: { cellWidth: 95, halign: 'left' },
-            2: { cellWidth: 15 },
-            3: { cellWidth: 15 },
-            4: { cellWidth: 55, halign: 'left' }
-        }
+
+    renderHealthFormPage(doc, formValues, healthRows, {
+        signature: applicationData.signature || formValues.firma
     });
-    
-    y = doc.lastAutoTable.finalY + 12;
-    y = addBlockText(doc, 'Shtetasi', y);
-    y = addBlockText(doc, applicantName || '____________________________________', y + 2);
-    y = addBlockText(doc, '(Emri     Atësia     Mbiemri)', y + 2);
-    y = addSignatureToPdf(doc, applicationData.signature || formValues.firma, y + 2, { x: 14, label: 'Firma:' });
     
     doc.save(`Formulari_Shendetesor_${applicationData.id}.pdf`);
 }
