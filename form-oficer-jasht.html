@@ -33,32 +33,32 @@
                 <h2>oficer, studime jashtë vendit</h2>
             </div>
 
-            <form id="ushtarForm" class="application-form">
+            <form id="ushtarForm" class="application-form" method="post">
                 <!-- Të dhënat personale -->
                 <section class="form-section">
                     <h3 class="section-title">Të dhënat personale</h3>
                     <div class="form-grid">
-                        <div class="form-group" id="shkollaMesmeGroup">
+                        <div class="form-group">
                             <label for="emri">Emri:</label>
                             <input type="text" id="emri" name="emri" required>
                         </div>
-                        <div class="form-group" id="emriShkollesGroup">
+                        <div class="form-group">
                             <label for="atesia">Atësia:</label>
                             <input type="text" id="atesia" name="atesia" required>
                         </div>
-                        <div class="form-group" id="notaGjimnazGroup">
+                        <div class="form-group">
                             <label for="emriNenes">Emri i nënës:</label>
                             <input type="text" id="emriNenes" name="emriNenes" required>
                         </div>
-                        <div class="form-group" id="notaProfesionaleGroup">
+                        <div class="form-group">
                             <label for="mbiemri">Mbiemri:</label>
                             <input type="text" id="mbiemri" name="mbiemri" required>
                         </div>
-                        <div class="form-group" id="profiliShkollesGroup">
+                        <div class="form-group">
                             <label for="nrPersonal">Nr personal ID:</label>
                             <input type="text" id="nrPersonal" name="nrPersonal" required>
                         </div>
-                        <div class="form-group" id="llojiUniversitetitGroup">
+                        <div class="form-group">
                             <label for="gjinia">Gjinia:</label>
                             <select id="gjinia" name="gjinia" required>
                                 <option value="">---------</option>
@@ -66,19 +66,19 @@
                                 <option value="Femër">Femër</option>
                             </select>
                         </div>
-                        <div class="form-group" id="diplomaGroup">
+                        <div class="form-group">
                             <label for="gjatësia">Gjatësia cm:</label>
                             <input type="number" id="gjatësia" name="gjatësia" required>
                         </div>
-                        <div class="form-group" id="emriShkollesLarteGroup">
+                        <div class="form-group">
                             <label for="datelindja">Datëlindja:</label>
                             <input type="date" id="datelindja" name="datelindja" required>
                         </div>
-                        <div class="form-group" id="dataFillimitGroup">
+                        <div class="form-group">
                             <label for="vendlindja">Vendlindja:</label>
                             <input type="text" id="vendlindja" name="vendlindja" required>
                         </div>
-                        <div class="form-group" id="dataMbarimitGroup">
+                        <div class="form-group">
                             <label for="vendbanimi">Vendbanimi:</label>
                             <input type="text" id="vendbanimi" name="vendbanimi" required>
                         </div>
@@ -134,7 +134,7 @@
                             <label for="notaMesatareNente">Nota mesatare e klasës së 9-të:</label>
                             <input type="text" inputmode="decimal" id="notaMesatareNente" name="notaMesatareNente" maxlength="5" placeholder="p.sh. 9.50">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="shkollaMesmeGroup">
                             <label for="shkollaMesme">Shkolla e mesme:</label>
                             <select id="shkollaMesme" name="shkollaMesme">
                                 <option value="">---------</option>
@@ -142,23 +142,23 @@
                                 <option value="Profesionale">Profesionale</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="emriShkollesGroup">
                             <label for="emriShkolles">Emri i shkollës së mesme:</label>
                             <input type="text" id="emriShkolles" name="emriShkolles">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="notaGjimnazGroup">
                             <label for="notaMesatareGjimnaz">Nota mesatare e gjimnazit:</label>
                             <input type="text" inputmode="decimal" id="notaMesatareGjimnaz" name="notaMesatareGjimnaz" maxlength="5" placeholder="p.sh. 9.50">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="notaProfesionaleGroup">
                             <label for="notaMesatareProfesionale">Nota mesatare e shkollës profesionale:</label>
                             <input type="text" inputmode="decimal" id="notaMesatareProfesionale" name="notaMesatareProfesionale" maxlength="5" placeholder="p.sh. 9.50">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="profiliShkollesGroup">
                             <label for="profiliShkolles">Profili i shkollës profesionale:</label>
                             <input type="text" id="profiliShkolles" name="profiliShkolles">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="llojiUniversitetitGroup">
                             <label for="llojiUniversitetit">Lloji i universitetit:</label>
                             <select id="llojiUniversitetit" name="llojiUniversitetit">
                                 <option value="">---------</option>
@@ -166,7 +166,7 @@
                                 <option value="Privat">Privat</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="diplomaGroup">
                             <label for="diploma">Diploma e shkollës së lartë:</label>
                             <select id="diploma" name="diploma">
                                 <option value="">---------</option>
@@ -175,15 +175,15 @@
                                 <option value="Master shkencor">Master shkencor</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="emriShkollesLarteGroup">
                             <label for="emriShkollesLarte">Emri i shkollës së lartë:</label>
                             <input type="text" id="emriShkollesLarte" name="emriShkollesLarte">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="dataFillimitGroup">
                             <label for="dataFillimit">Data e fillimit të shkollës së lartë:</label>
                             <input type="date" id="dataFillimit" name="dataFillimit">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="dataMbarimitGroup">
                             <label for="dataMbarimit">Data e mbarimit të shkollës së lartë:</label>
                             <input type="date" id="dataMbarimit" name="dataMbarimit">
                         </div>
