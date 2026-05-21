@@ -123,49 +123,6 @@ function handleDateBlur(event) {
     
     const digits = input.value.replace(/\D/g, '');
 
-    function isValidGradeValue(value) {
-        if (!value) return true;
-
-        const normalizedValue = String(value).trim();
-        if (!/^\d{1,2}([.,]\d{1,2})?$/.test(normalizedValue)) {
-            return false;
-        }
-
-        const numericValue = Number(normalizedValue.replace(',', '.'));
-        return !Number.isNaN(numericValue) && numericValue >= 0 && numericValue <= 10;
-    }
-
-    function handleGradeInput(event) {
-        const input = event.target;
-        input.setCustomValidity('');
-    }
-
-    function handleGradeBlur(event) {
-        const input = event.target;
-        const value = input.value.trim();
-
-        if (!value) {
-            input.setCustomValidity('');
-            return;
-        }
-
-        if (!isValidGradeValue(value)) {
-            input.setCustomValidity('Vendosni një notë nga 0 deri në 10, me maksimumi 2 shifra dhjetore.');
-            input.reportValidity();
-            return;
-        }
-
-        input.setCustomValidity('');
-    }
-
-    function setupGradeInputs() {
-        const gradeInputs = document.querySelectorAll('#notaMesatareNente, #notaMesatareGjimnaz, #notaMesatareProfesionale');
-        gradeInputs.forEach(input => {
-            input.dataset.gradeField = 'true';
-            input.addEventListener('input', handleGradeInput);
-            input.addEventListener('blur', handleGradeBlur);
-        });
-    }
     if (digits.length !== 8) {
         input.setCustomValidity('Përdorni formatin dd-mm-vvvv');
         input.reportValidity();
@@ -189,6 +146,50 @@ function handleDateBlur(event) {
     
     input.value = formatDigitsToDate(digits);
     input.setCustomValidity('');
+}
+
+function isValidGradeValue(value) {
+    if (!value) return true;
+
+    const normalizedValue = String(value).trim();
+    if (!/^\d{1,2}([.,]\d{1,2})?$/.test(normalizedValue)) {
+        return false;
+    }
+
+    const numericValue = Number(normalizedValue.replace(',', '.'));
+    return !Number.isNaN(numericValue) && numericValue >= 0 && numericValue <= 10;
+}
+
+function handleGradeInput(event) {
+    const input = event.target;
+    input.setCustomValidity('');
+}
+
+function handleGradeBlur(event) {
+    const input = event.target;
+    const value = input.value.trim();
+
+    if (!value) {
+        input.setCustomValidity('');
+        return;
+    }
+
+    if (!isValidGradeValue(value)) {
+        input.setCustomValidity('Vendosni një notë nga 0 deri në 10, me maksimumi 2 shifra dhjetore.');
+        input.reportValidity();
+        return;
+    }
+
+    input.setCustomValidity('');
+}
+
+function setupGradeInputs() {
+    const gradeInputs = document.querySelectorAll('#notaMesatareNente, #notaMesatareGjimnaz, #notaMesatareProfesionale');
+    gradeInputs.forEach(input => {
+        input.dataset.gradeField = 'true';
+        input.addEventListener('input', handleGradeInput);
+        input.addEventListener('blur', handleGradeBlur);
+    });
 }
 
 function serializeFormData(formData) {
