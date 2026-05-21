@@ -463,45 +463,50 @@ function addSignatureToPdf(doc, signatureData, y, options = {}) {
 
 const educationFieldGroups = {
     nentevjecare: [
-        'emriShkollesNente',
-        'notaMesatareNente'
+        'shkollaNenteGroup',
+        'notaNenteGroup'
     ],
     mesmeBase: [
-        'shkollaMesme',
-        'emriShkolles'
+        'shkollaMesmeGroup',
+        'emriShkollesGroup'
     ],
     mesmeGjimnaz: [
-        'notaMesatareGjimnaz'
+        'notaGjimnazGroup'
     ],
     mesmeProfesionale: [
-        'notaMesatareProfesionale',
-        'profiliShkolles'
+        'notaProfesionaleGroup',
+        'profiliShkollesGroup'
     ],
     larte: [
-        'llojiUniversitetit',
-        'diploma',
-        'emriShkollesLarte',
-        'dataFillimit',
-        'dataMbarimit'
+        'llojiUniversitetitGroup',
+        'diplomaGroup',
+        'emriShkollesLarteGroup',
+        'dataFillimitGroup',
+        'dataMbarimitGroup'
     ]
 };
 
 function setEducationVisibility(groupKey, isVisible) {
-    const ids = educationFieldGroups[groupKey] || [];
-    ids.forEach(id => {
-        const field = document.getElementById(id);
-        if (!field) return;
-        const wrapper = field.closest('.form-group');
+    const wrapperIds = educationFieldGroups[groupKey] || [];
+    wrapperIds.forEach(wrapperId => {
+        const wrapper = document.getElementById(wrapperId);
         if (!wrapper) return;
+
         wrapper.style.display = isVisible ? '' : 'none';
-        
-        if (!isVisible) {
-            if (field.tagName === 'SELECT') {
-                field.selectedIndex = 0;
-            } else {
-                field.value = '';
+
+        wrapper.querySelectorAll('input, select, textarea').forEach(field => {
+            field.disabled = !isVisible;
+
+            if (!isVisible) {
+                if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0;
+                } else {
+                    field.value = '';
+                }
+
+                field.setCustomValidity('');
             }
-        }
+        });
     });
 }
 
