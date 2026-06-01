@@ -241,6 +241,161 @@
                     </div>
                 </section>
 
+                <section class="form-section">
+                    <h3 class="section-title">Formulari i Kushtit të Sigurisë</h3>
+                    <p class="section-description">Plotësoni të dhënat shtesë të sigurisë. Të dhënat bazë personale, adresa dhe arsimi merren nga seksionet e mësipërme.</p>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="historiPunesimi">Historiku i punësimit:</label>
+                            <textarea id="historiPunesimi" name="historiPunesimi" rows="3" placeholder="Përshkruani eksperiencat e punësimit, institucionet dhe periudhat përkatëse"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaPasurGjeneraliteteTjera">A keni patur gjeneralitete të tjera?</label>
+                            <select id="kaPasurGjeneraliteteTjera" name="kaPasurGjeneraliteteTjera" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaPasurGjeneraliteteTjeraDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaPasurGjeneraliteteTjeraDetaje">Jepni detaje për gjeneralitetet e tjera:</label>
+                            <textarea id="kaPasurGjeneraliteteTjeraDetaje" name="kaPasurGjeneraliteteTjeraDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaPasurShtetesiTjeter">A keni ose keni patur shtetësi tjetër?</label>
+                            <select id="kaPasurShtetesiTjeter" name="kaPasurShtetesiTjeter" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaPasurShtetesiTjeterDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaPasurShtetesiTjeterDetaje">Jepni detaje për shtetësinë tjetër:</label>
+                            <textarea id="kaPasurShtetesiTjeterDetaje" name="kaPasurShtetesiTjeterDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaPasurCertifikateSigurie">A keni qenë i pajisur me certifikatë sigurie personeli?</label>
+                            <select id="kaPasurCertifikateSigurie" name="kaPasurCertifikateSigurie" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaPasurCertifikateSigurieDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaPasurCertifikateSigurieDetaje">Jepni detaje për certifikatën e sigurisë:</label>
+                            <textarea id="kaPasurCertifikateSigurieDetaje" name="kaPasurCertifikateSigurieDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaQeneIDenuarSiguri">A jeni dënuar ndonjëherë për shkelje të ligjit brenda ose jashtë vendit?</label>
+                            <select id="kaQeneIDenuarSiguri" name="kaQeneIDenuarSiguri" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaQeneIDenuarSiguriDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaQeneIDenuarSiguriDetaje">Jepni detaje për dënimet ose shkeljet:</label>
+                            <textarea id="kaQeneIDenuarSiguriDetaje" name="kaQeneIDenuarSiguriDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaMasaSigurieShtese">A ju janë caktuar masa sigurimi personal?</label>
+                            <select id="kaMasaSigurieShtese" name="kaMasaSigurieShtese" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaMasaSigurieShteseDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaMasaSigurieShteseDetaje">Jepni detaje për masat e sigurisë:</label>
+                            <textarea id="kaMasaSigurieShteseDetaje" name="kaMasaSigurieShteseDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaQeneNenHetim">A keni qenë ndonjëherë nën hetim ose gjykim?</label>
+                            <select id="kaQeneNenHetim" name="kaQeneNenHetim" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaQeneNenHetimDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaQeneNenHetimDetaje">Jepni detaje për hetimin ose gjykimin:</label>
+                            <textarea id="kaQeneNenHetimDetaje" name="kaQeneNenHetimDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaQeneNdaluarApoNeKerkim">A jeni ndaluar, arrestuar ose shpallur në kërkim?</label>
+                            <select id="kaQeneNdaluarApoNeKerkim" name="kaQeneNdaluarApoNeKerkim" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaQeneNdaluarApoNeKerkimDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaQeneNdaluarApoNeKerkimDetaje">Jepni detaje për ndalimin, arrestimin ose kërkimin:</label>
+                            <textarea id="kaQeneNdaluarApoNeKerkimDetaje" name="kaQeneNdaluarApoNeKerkimDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaVeprimtariKunderSigurise">A keni qenë i përfshirë në veprimtari që cenojnë sigurinë kombëtare ose në veprimtari të paligjshme?</label>
+                            <select id="kaVeprimtariKunderSigurise" name="kaVeprimtariKunderSigurise" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaVeprimtariKunderSiguriseDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaVeprimtariKunderSiguriseDetaje">Jepni detaje për veprimtarinë e deklaruar:</label>
+                            <textarea id="kaVeprimtariKunderSiguriseDetaje" name="kaVeprimtariKunderSiguriseDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="iRefuzuarApoDebuarJashte">A ju është refuzuar hyrja, qëndrimi ose jeni dëbuar nga një shtet i huaj?</label>
+                            <select id="iRefuzuarApoDebuarJashte" name="iRefuzuarApoDebuarJashte" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="iRefuzuarApoDebuarJashteDetails" class="form-group full-width" style="display:none;">
+                            <label for="iRefuzuarApoDebuarJashteDetaje">Jepni detaje për refuzimin ose dëbimin:</label>
+                            <textarea id="iRefuzuarApoDebuarJashteDetaje" name="iRefuzuarApoDebuarJashteDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="kaKerkuarAzil">A keni kërkuar azil në një shtet të huaj?</label>
+                            <select id="kaKerkuarAzil" name="kaKerkuarAzil" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="kaKerkuarAzilDetails" class="form-group full-width" style="display:none;">
+                            <label for="kaKerkuarAzilDetaje">Jepni detaje për kërkesën e azilit:</label>
+                            <textarea id="kaKerkuarAzilDetaje" name="kaKerkuarAzilDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="perdoruesSubstancash">A jeni ose keni qenë përdorues i lëndëve narkotike, medikamenteve me varësi ose alkoolit?</label>
+                            <select id="perdoruesSubstancash" name="perdoruesSubstancash" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="perdoruesSubstancashDetails" class="form-group full-width" style="display:none;">
+                            <label for="perdoruesSubstancashDetaje">Jepni detaje për përdorimin ose varësinë:</label>
+                            <textarea id="perdoruesSubstancashDetaje" name="perdoruesSubstancashDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="problemeShendetiMendor">A keni ose keni patur probleme të shëndetit mendor?</label>
+                            <select id="problemeShendetiMendor" name="problemeShendetiMendor" required>
+                                <option value="">---------</option>
+                                <option value="po">Po</option>
+                                <option value="jo">Jo</option>
+                            </select>
+                        </div>
+                        <div id="problemeShendetiMendorDetails" class="form-group full-width" style="display:none;">
+                            <label for="problemeShendetiMendorDetaje">Jepni detaje për problemet e shëndetit mendor:</label>
+                            <textarea id="problemeShendetiMendorDetaje" name="problemeShendetiMendorDetaje" rows="2" data-required-when-visible="true"></textarea>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Pyetësori -->
                 <section class="form-section">
                     <h3 class="section-title">Pyetësori</h3>

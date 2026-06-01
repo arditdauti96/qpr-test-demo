@@ -27,6 +27,81 @@ const shendetesorQuestions = [
     "A keni pasur problem të tjera shëndetësore?"
 ];
 
+const securityConditionQuestions = [
+    {
+        fieldId: 'kaPasurGjeneraliteteTjera',
+        detailsId: 'kaPasurGjeneraliteteTjeraDetails',
+        detailFieldId: 'kaPasurGjeneraliteteTjeraDetaje',
+        question: 'A keni patur gjeneralitete të tjera?'
+    },
+    {
+        fieldId: 'kaPasurShtetesiTjeter',
+        detailsId: 'kaPasurShtetesiTjeterDetails',
+        detailFieldId: 'kaPasurShtetesiTjeterDetaje',
+        question: 'A keni ose keni patur shtetësi tjetër?'
+    },
+    {
+        fieldId: 'kaPasurCertifikateSigurie',
+        detailsId: 'kaPasurCertifikateSigurieDetails',
+        detailFieldId: 'kaPasurCertifikateSigurieDetaje',
+        question: 'A keni qenë i pajisur me certifikatë sigurie personeli?'
+    },
+    {
+        fieldId: 'kaQeneIDenuarSiguri',
+        detailsId: 'kaQeneIDenuarSiguriDetails',
+        detailFieldId: 'kaQeneIDenuarSiguriDetaje',
+        question: 'A jeni dënuar ndonjëherë për shkelje të ligjit brenda ose jashtë vendit?'
+    },
+    {
+        fieldId: 'kaMasaSigurieShtese',
+        detailsId: 'kaMasaSigurieShteseDetails',
+        detailFieldId: 'kaMasaSigurieShteseDetaje',
+        question: 'A ju janë caktuar masa sigurimi personal?'
+    },
+    {
+        fieldId: 'kaQeneNenHetim',
+        detailsId: 'kaQeneNenHetimDetails',
+        detailFieldId: 'kaQeneNenHetimDetaje',
+        question: 'A keni qenë ndonjëherë nën hetim ose gjykim?'
+    },
+    {
+        fieldId: 'kaQeneNdaluarApoNeKerkim',
+        detailsId: 'kaQeneNdaluarApoNeKerkimDetails',
+        detailFieldId: 'kaQeneNdaluarApoNeKerkimDetaje',
+        question: 'A jeni ndaluar, arrestuar ose shpallur në kërkim?'
+    },
+    {
+        fieldId: 'kaVeprimtariKunderSigurise',
+        detailsId: 'kaVeprimtariKunderSiguriseDetails',
+        detailFieldId: 'kaVeprimtariKunderSiguriseDetaje',
+        question: 'A keni qenë i përfshirë në veprimtari që cenojnë sigurinë kombëtare ose në veprimtari të paligjshme?'
+    },
+    {
+        fieldId: 'iRefuzuarApoDebuarJashte',
+        detailsId: 'iRefuzuarApoDebuarJashteDetails',
+        detailFieldId: 'iRefuzuarApoDebuarJashteDetaje',
+        question: 'A ju është refuzuar hyrja, qëndrimi ose jeni dëbuar nga një shtet i huaj?'
+    },
+    {
+        fieldId: 'kaKerkuarAzil',
+        detailsId: 'kaKerkuarAzilDetails',
+        detailFieldId: 'kaKerkuarAzilDetaje',
+        question: 'A keni kërkuar azil në një shtet të huaj?'
+    },
+    {
+        fieldId: 'perdoruesSubstancash',
+        detailsId: 'perdoruesSubstancashDetails',
+        detailFieldId: 'perdoruesSubstancashDetaje',
+        question: 'A jeni ose keni qenë përdorues i lëndëve narkotike, medikamenteve me varësi ose alkoolit?'
+    },
+    {
+        fieldId: 'problemeShendetiMendor',
+        detailsId: 'problemeShendetiMendorDetails',
+        detailFieldId: 'problemeShendetiMendorDetaje',
+        question: 'A keni ose keni patur probleme të shëndetit mendor?'
+    }
+];
+
 const applicationStructureText = [
     "Ç) Struktura/Reparti Ushtarak ku dëshironi të shërbeni: (shëno me X).",
     "1.1 Forca Tokësore (sipas kërkesave të Forcave të Armatosura)",
@@ -682,6 +757,344 @@ function toggleMasaSiguriseDetails() {
     }
 }
 
+function toggleConditionalDetails(fieldId, detailsId) {
+    const select = document.getElementById(fieldId);
+    const details = document.getElementById(detailsId);
+    if (!select || !details) {
+        return;
+    }
+
+    const isVisible = select.value === 'po';
+    details.style.display = isVisible ? '' : 'none';
+
+    details.querySelectorAll('input, select, textarea').forEach(field => {
+        field.disabled = !isVisible;
+
+        if (field.dataset.requiredWhenVisible === 'true') {
+            field.required = isVisible;
+        }
+
+        if (!isVisible) {
+            if (field.tagName === 'SELECT') {
+                field.selectedIndex = 0;
+            } else if (field.type === 'checkbox' || field.type === 'radio') {
+                field.checked = false;
+            } else {
+                field.value = '';
+            }
+            field.setCustomValidity('');
+        }
+    });
+}
+
+function buildSecurityConditionRows(formValues) {
+    return securityConditionQuestions.map((item, index) => ({
+        index,
+        question: item.question,
+        answer: formValues[item.fieldId] ? String(formValues[item.fieldId]).toUpperCase() : '',
+        comment: formValues[item.detailFieldId] || ''
+    })).filter(row => row.answer || row.comment);
+}
+
+const securityPersonalSectionQuestions = [
+    {
+        label: 'a.',
+        fieldId: 'kaPasurGjeneraliteteTjera',
+        detailFieldId: 'kaPasurGjeneraliteteTjeraDetaje',
+        question: 'Keni patur gjeneralitete të tjera më parë?'
+    },
+    {
+        label: 'b.',
+        fieldId: 'kaPasurShtetesiTjeter',
+        detailFieldId: 'kaPasurShtetesiTjeterDetaje',
+        question: 'Keni apo keni patur shtetësi tjetër?'
+    }
+];
+
+const securityMainSectionQuestions = [
+    {
+        number: 1,
+        fieldId: 'kaPasurCertifikateSigurie',
+        detailFieldId: 'kaPasurCertifikateSigurieDetaje',
+        question: 'A keni qenë ndonjëherë i pajisur me Certifikatë të Sigurisë së Personelit?'
+    },
+    {
+        number: 2,
+        fieldId: 'kaQeneIDenuarSiguri',
+        detailFieldId: 'kaQeneIDenuarSiguriDetaje',
+        question: 'A jeni dënuar ndonjëherë për shkelje ligjore brenda apo jashtë vendit?'
+    },
+    {
+        number: 3,
+        fieldId: 'kaMasaSigurieShtese',
+        detailFieldId: 'kaMasaSigurieShteseDetaje',
+        question: 'A është caktuar ndonjëherë ndaj jush masë shtrënguese sigurie personale (detyrim paraqitje, ndalim dalje jashtë vendit, shtrim i përkohshëm në një spital psikiatrik, arrest shtëpie, apo arrest me burg), për ndonjë vepër penale, brenda apo jashtë vendit?'
+    },
+    {
+        number: 4,
+        fieldId: 'kaQeneNenHetim',
+        detailFieldId: 'kaQeneNenHetimDetaje',
+        question: 'A keni qenë ndonjëherë nën hetim ose gjykim brenda apo jashtë vendit, për shkelje ligjore?'
+    },
+    {
+        number: 5,
+        fieldId: 'kaQeneNdaluarApoNeKerkim',
+        detailFieldId: 'kaQeneNdaluarApoNeKerkimDetaje',
+        question: 'A keni qenë ndonjëherë i ndaluar, arrestuar brenda dhe jashtë vendit apo shpallur në kërkim kombëtar/ndërkombëtar?'
+    },
+    {
+        number: 6,
+        fieldId: 'kaVeprimtariKunderSigurise',
+        detailFieldId: 'kaVeprimtariKunderSiguriseDetaje',
+        question: 'A jeni përfshirë ose angazhuar ndonjëherë në veprimtari që cenojnë sigurinë kombëtare apo në aktivitete të kundërligjshme?'
+    },
+    {
+        number: 7,
+        fieldId: 'iRefuzuarApoDebuarJashte',
+        detailFieldId: 'iRefuzuarApoDebuarJashteDetaje',
+        question: 'A ju është refuzuar hyrja, qëndrimi apo jeni deportuar nga ndonjë shtet i huaj?'
+    },
+    {
+        number: 8,
+        fieldId: 'kaKerkuarAzil',
+        detailFieldId: 'kaKerkuarAzilDetaje',
+        question: 'A keni kërkuar ndonjëherë azil në ndonjë shtet të huaj?'
+    },
+    {
+        number: 9,
+        fieldId: 'perdoruesSubstancash',
+        detailFieldId: 'perdoruesSubstancashDetaje',
+        question: 'A keni qenë apo jeni përdorues i lëndëve narkotike, keni histori varësie ndaj medikamenteve mjekësore apo alkoolit?'
+    },
+    {
+        number: 10,
+        fieldId: 'problemeShendetiMendor',
+        detailFieldId: 'problemeShendetiMendorDetaje',
+        question: 'A keni apo keni patur probleme me shëndetin mendor?'
+    }
+];
+
+function drawSecurityPdfFooter(doc, pageNumber, totalPages = 4) {
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(0.3);
+    doc.line(20, 286, 190, 286);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('I Kufizuar (pas plotësimit)', 105, 292, { align: 'center' });
+    doc.text(`Faqe ${pageNumber} nga ${totalPages}`, 190, 292, { align: 'right' });
+}
+
+function drawSecurityPdfYesNo(doc, y, answer, x = 80) {
+    const normalizedAnswer = String(answer || '').toLowerCase();
+    const isYes = normalizedAnswer === 'po';
+    const isNo = normalizedAnswer === 'jo';
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('Po', x, y);
+    doc.rect(x + 8, y - 4, 7, 6);
+    if (isYes) {
+        doc.text('X', x + 10.5, y + 0.5, { align: 'center' });
+    }
+
+    doc.text('Jo', x + 42, y);
+    doc.rect(x + 50, y - 4, 7, 6);
+    if (isNo) {
+        doc.text('X', x + 52.5, y + 0.5, { align: 'center' });
+    }
+}
+
+function drawSecurityPdfDetailLines(doc, y, detailText, x = 24, width = 156, minLines = 3) {
+    doc.setFont('helvetica', 'normal');
+    doc.text('Nëse po, ju lutem jepni detaje', x, y);
+
+    const textX = x + 47;
+    const safeDetail = detailText || '';
+    const detailLines = safeDetail
+        ? doc.splitTextToSize(safeDetail, width - 4)
+        : [];
+    const lineCount = Math.max(minLines, detailLines.length || 0);
+    const detailStartY = y + 6;
+
+    for (let index = 0; index < lineCount; index += 1) {
+        const lineY = detailStartY + (index * 6);
+        doc.line(textX, lineY + 0.5, textX + width, lineY + 0.5);
+        if (detailLines[index]) {
+            doc.text(detailLines[index], textX + 1.5, lineY);
+        }
+    }
+
+    return detailStartY + (lineCount * 6) + 3;
+}
+
+function drawSecurityPdfQuestionBlock(doc, y, label, questionText, answer, detailText, options = {}) {
+    const { x = 24, width = 156, detailLines = 3 } = options;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    const questionLines = doc.splitTextToSize(`${label} ${questionText}`, width);
+    questionLines.forEach(line => {
+        doc.text(line, x, y);
+        y += 6;
+    });
+    drawSecurityPdfYesNo(doc, y, answer, x + 40);
+    y += 8;
+    return drawSecurityPdfDetailLines(doc, y, detailText, x, width, detailLines);
+}
+
+function generateSecurityConditionPdf(applicationData, formValues) {
+    const doc = createPdfDocument();
+    if (!doc) return;
+
+    const applicantName = getApplicantFullName(formValues);
+    const submittedDate = applicationData.submittedDate || formatDateValue(new Date());
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text('FORMULARI I KUSHTIT TË SIGURISË', 105, 22, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    let y = 40;
+    y = addBlockText(doc, 'Ky dokument pranohet vetëm nëse:', y, { x: 24, maxWidth: 160 });
+    y = addBlockText(doc, '- Është plotësuar nga vetë deklaruesi, në dorëshkrim, me shkronja kapitale dhe pa korrigjime.', y + 2, { x: 28, maxWidth: 156 });
+    y = addBlockText(doc, '- Nuk ka rubrika të paplotësuara, ose vendosur shënimi “nuk aplikohet”, në rastet e nevojshme.', y, { x: 28, maxWidth: 156 });
+    y = addBlockText(doc, '- Aplikanti ka shkruar emrin, mbiemrin dhe nënshkrimin, në fund të çdo faqeje.', y, { x: 28, maxWidth: 156 });
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('PJESA I', 105, y + 8, { align: 'center' });
+    doc.text('TË DHËNA PERSONALE:', 105, y + 16, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text('1. Gjeneralitet aktuale.', 24, y + 30);
+
+    doc.autoTable({
+        startY: y + 36,
+        theme: 'grid',
+        styles: { font: 'helvetica', fontSize: 10.5, cellPadding: 2.5, lineColor: [90, 90, 90], lineWidth: 0.2 },
+        columnStyles: {
+            0: { cellWidth: 52, fontStyle: 'bold' },
+            1: { cellWidth: 96 }
+        },
+        body: [
+            ['Emër / Mbiemër', `${formValues.emri || ''} ${formValues.mbiemri || ''}`.trim()],
+            ['Atësi', formValues.atesia || ''],
+            ['Amësi', formValues.emriNenes || ''],
+            ['Gjinia', formValues.gjinia || ''],
+            ['Datëlindja', formatDateValue(formValues.datelindja)],
+            ['Vendlindja', formValues.vendlindja || ''],
+            ['Shtetësia', formValues.shtetesia || ''],
+            ['Numri Personal (ID)', formValues.nrPersonal || '']
+        ],
+        margin: { left: 28, right: 28 }
+    });
+
+    y = doc.lastAutoTable.finalY + 10;
+    y = addBlockText(doc, `2. Adresa e plotë e banimit numër apartamenti/shtëpie, rruga, qyteti: ${formValues.adresa || ''}`, y, { x: 24, maxWidth: 160 });
+    y = addBlockText(doc, `3. Numri i telefonit (Celularit): ${formValues.nrKontakti || ''}`, y + 2, { x: 24, maxWidth: 160 });
+    y = addBlockText(doc, `4. Adresa e email: ${applicationData.email || formValues.email || ''}`, y + 2, { x: 24, maxWidth: 160 });
+    y += 8;
+
+    securityPersonalSectionQuestions.forEach((item, index) => {
+        y = drawSecurityPdfQuestionBlock(doc, y, item.label, item.question, formValues[item.fieldId], formValues[item.detailFieldId], {
+            x: 34,
+            width: 146,
+            detailLines: index === 0 ? 3 : 2
+        });
+        y += 2;
+    });
+
+    drawSecurityPdfFooter(doc, 1);
+
+    doc.addPage();
+    y = 22;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('PJESA II', 105, y, { align: 'center' });
+    doc.text('TË DHËNA PËR SIGURINË:', 105, y + 12, { align: 'center' });
+    y += 28;
+
+    securityMainSectionQuestions.slice(0, 4).forEach(item => {
+        y = drawSecurityPdfQuestionBlock(doc, y, `${item.number}.`, item.question, formValues[item.fieldId], formValues[item.detailFieldId], {
+            detailLines: item.number === 3 ? 3 : 2
+        });
+        y += 2;
+    });
+
+    drawSecurityPdfFooter(doc, 2);
+
+    doc.addPage();
+    y = 22;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('PJESA II', 105, y, { align: 'center' });
+    y += 18;
+
+    securityMainSectionQuestions.slice(4).forEach(item => {
+        y = drawSecurityPdfQuestionBlock(doc, y, `${item.number}.`, item.question, formValues[item.fieldId], formValues[item.detailFieldId], {
+            detailLines: item.number >= 9 ? 3 : 2
+        });
+        y += 2;
+    });
+
+    drawSecurityPdfFooter(doc, 3);
+
+    doc.addPage();
+    y = 24;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('PJESA III', 105, y, { align: 'center' });
+    doc.text('DEKLARATA E DHËNIES SË PËLQIMIT', 105, y + 12, { align: 'center' });
+    doc.text('PËR', 105, y + 23, { align: 'center' });
+    const consentTitle = doc.splitTextToSize('MBLEDHJEN E TË DHËNAVE, KRYERJEN E VERIFIKIMIT TË PLOTËSIMIT TË KUSHTIT TË SIGURISË DHE AKSESIN PËR NJOHJEN DHE ADMINISTRIMIN E TË DHËNAVE PERSONALE', 150);
+    consentTitle.forEach((line, index) => {
+        doc.text(line, 105, y + 34 + (index * 7), { align: 'center' });
+    });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    y = y + 34 + (consentTitle.length * 7) + 12;
+    y = addBlockText(doc, `Me vullnetin tim të lirë, sot më datë ${submittedDate}, duke qenë i vetëdijshëm se ky formular përbën dokument zyrtar, të dhënat e pasqyruara në këtë formular i nënshtrohen verifikimit të plotë brenda dhe jashtë vendit, deklaroj se:`, y, { x: 22, maxWidth: 168 });
+    y = addBlockText(doc, '1. Jap pëlqimin që të mblidhen të dhëna dhe të kryhet procedura e verifikimit të kushtit të sigurisë.', y + 6, { x: 22, maxWidth: 168 });
+    y = addBlockText(doc, '2. Jam dakort që të dhënat e pasqyruara në këtë formular, të trajtohen nga personat përgjegjës në përputhje me ligjin nr. 9887 datë 10.03.2008, “Për mbrojtjen e të dhënave personale”, i ndryshuar.', y + 4, { x: 22, maxWidth: 168 });
+    y = addBlockText(doc, '3. Të dhënat e pasqyruara nga ana ime në “formularin e kushtit të sigurisë” janë të vërteta, të plota dhe të sakta.', y + 4, { x: 22, maxWidth: 168 });
+    y = addBlockText(doc, '4. Jam i ndërgjegjshëm dhe i vetëdijshëm që pasqyrimi i të dhënave të pavërteta, të paplota dhe të pasakta në “Formularin e kushtit të sigurisë”, përbën shkak për ndërprerjen e procedurave dhe mos plotësimin e “kushtit të sigurisë”.', y + 4, { x: 22, maxWidth: 168 });
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('DEKLARUESI', 105, 218, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(applicantName || 'Emër, Atësi, Mbiemër', 105, 244, { align: 'center' });
+    doc.text('Emër, Atësi, Mbiemër', 105, 252, { align: 'center' });
+    doc.text('Nënshkrimi', 105, 270, { align: 'center' });
+    if (applicationData.signature || formValues.firma) {
+        try {
+            doc.addImage(applicationData.signature || formValues.firma, 'PNG', 78, 274, 54, 18);
+        } catch (error) {
+            console.warn('Could not add signature image to security PDF.', error);
+        }
+    }
+
+    drawSecurityPdfFooter(doc, 4);
+    doc.save(`Formulari_Kushtit_Sigurise_${applicationData.id}.pdf`);
+}
+
+function moveSecuritySectionBeforeAccount() {
+    const accountSection = document.getElementById('accountSection');
+    if (!accountSection || !accountSection.parentNode) {
+        return;
+    }
+
+    const securitySectionTitle = Array.from(document.querySelectorAll('.form-section .section-title')).find(title =>
+        title.textContent && title.textContent.trim() === 'Formulari i Kushtit të Sigurisë'
+    );
+    const securitySection = securitySectionTitle ? securitySectionTitle.closest('.form-section') : null;
+
+    if (!securitySection || securitySection === accountSection) {
+        return;
+    }
+
+    accountSection.parentNode.insertBefore(securitySection, accountSection);
+}
+
 // Form Submission - Create Account and Save Application
 document.addEventListener('DOMContentLoaded', function() {
     // Generate tables first
@@ -702,6 +1115,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (masaSiguriseField) {
         masaSiguriseField.addEventListener('change', toggleMasaSiguriseDetails);
     }
+    securityConditionQuestions.forEach(item => {
+        const select = document.getElementById(item.fieldId);
+        if (!select) {
+            return;
+        }
+
+        select.addEventListener('change', () => toggleConditionalDetails(item.fieldId, item.detailsId));
+        toggleConditionalDetails(item.fieldId, item.detailsId);
+    });
+
+    moveSecuritySectionBeforeAccount();
     
     // Education visibility
     if (arsimiField) {
@@ -981,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Redirect to dashboard
     setTimeout(() => {
         window.location.href = 'applicant-dashboard.html';
-    }, 2000);
+    }, 3000);
     });
     
     // Add password confirmation validation
@@ -1015,17 +1439,21 @@ function generateAllPdfs(applicationData, formValues) {
         generateApplicationPdf(applicationData, formValues);
         
         setTimeout(() => {
-            generateDeclarationPdf(applicationData, formValues);
+            generateSecurityConditionPdf(applicationData, formValues);
         }, 500);
         
         setTimeout(() => {
-            generateHealthPdf(applicationData, formValues);
+            generateDeclarationPdf(applicationData, formValues);
         }, 1000);
+        
+        setTimeout(() => {
+            generateHealthPdf(applicationData, formValues);
+        }, 1500);
         
         // Show info message
         setTimeout(() => {
-            alert('3 dokumente PDF u gjeneruan dhe u shkarkuan:\n\n1. Formulari i Aplikimit (5 faqe)\n2. Formulari Vetëdeklarimi (1 faqe)\n3. Formulari Vetëdeklarimi Shëndetësor (1 faqe)');
-        }, 1500);
+            alert('4 dokumente PDF u gjeneruan dhe u shkarkuan:\n\n1. Formulari i Aplikimit\n2. Formulari i Kushtit të Sigurisë\n3. Formulari Vetëdeklarimi\n4. Formulari Vetëdeklarimi Shëndetësor');
+        }, 2000);
     } catch (error) {
         console.error('Error while generating PDFs:', error);
         alert('Gabim në gjenerimin e PDF-ve. Ju lutem kontrolloni konsolën për më shumë detaje.');
