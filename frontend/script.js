@@ -266,8 +266,8 @@ window.toggleBenefit = function(element) {
     element.classList.toggle('active', !isActive);
 };
 
-// Load Benefits from localStorage
-function loadBenefitsFromStorage() {
+// Load Benefits from API/localStorage
+async function loadBenefitsFromStorage() {
     const defaultBenefits = [
         {
             title: 'Përse duhet të bëheni pjesë e FA',
@@ -345,6 +345,14 @@ function loadBenefitsFromStorage() {
             ]
         }
     ];
+
+    if (window.QprApi) {
+        try {
+            await window.QprApi.fetchBenefits();
+        } catch (error) {
+            console.error('Failed to fetch benefits from API:', error);
+        }
+    }
 
     const savedBenefits = JSON.parse(localStorage.getItem('benefitsData') || 'null');
     const benefits = savedBenefits || defaultBenefits;
@@ -741,32 +749,35 @@ document.addEventListener('click', function(event) {
 });
 
 // Check login status and redirect accordingly
-function checkLoginStatus(event) {
-    const isLoggedIn = localStorage.getItem('applicantLoggedIn');
-    const email = localStorage.getItem('applicantEmail');
-    
-    if (isLoggedIn && email) {
-        // User is already logged in - redirect to dashboard
-        event.preventDefault();
-        window.location.href = 'applicant-dashboard.html';
+async function checkLoginStatus(event) {
+    event.preventDefault();
+
+    if (!window.QprApi) {
+        window.location.href = 'login.html';
+        return;
     }
-    // If not logged in, let the default link behavior work (goes to login.html)
+
+    try {
+        await window.QprApi.fetchApplicantApplications();
+        window.location.href = 'applicant-dashboard.html';
+    } catch (error) {
+        window.location.href = 'login.html';
+    }
 }
 
 // Update login button text if user is logged in
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const loginButton = document.getElementById('loginButton');
     if (loginButton) {
-        const isLoggedIn = localStorage.getItem('applicantLoggedIn');
-        const email = localStorage.getItem('applicantEmail');
-        
-        if (isLoggedIn && email) {
-            // User is logged in - change button text
+        try {
+            await window.QprApi.fetchApplicantApplications();
             loginButton.innerHTML = 'Dashboard <span class="login-arrow">→</span>';
-            loginButton.onclick = function(e) {
+            loginButton.onclick = async function(e) {
                 e.preventDefault();
                 window.location.href = 'applicant-dashboard.html';
             };
+        } catch (error) {
+            // No active applicant session; keep login button behavior.
         }
     }
 });

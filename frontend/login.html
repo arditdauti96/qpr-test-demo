@@ -152,6 +152,7 @@
         </div>
     </div>
 
+    <script src="api-client.js"></script>
     <script>
         // Wait for DOM to be ready
         document.addEventListener('DOMContentLoaded', function() {
@@ -162,7 +163,7 @@
                 return;
             }
             
-            loginForm.addEventListener('submit', function(e) {
+            loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -179,74 +180,34 @@
                     return;
                 }
                 
-                // Check if user exists in localStorage
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                console.log('Total users in storage:', users.length);
-                console.log('All users:', users);
-                
-                const user = users.find(u => u.email === email);
-                
-                if (!user) {
-                    console.log('User not found for email:', email);
-                    console.log('Available emails:', users.map(u => u.email));
-                    
-                    // Check if maybe the user hasn't created account yet
-                    // In this case, allow login with any password if creating new account
-                    // But for now, show helpful error
-                    alert('Email nuk u gjet!\n\nNëse kjo është hera e parë që hyn:\n1. Shko te create-test-account.html për të krijuar llogari test\n2. Ose plotëso një aplikim për të krijuar llogari automatikisht.');
-                    return;
+                try {
+                    await window.QprApi.loginApplicant(email, password);
+                    console.log('Login successful, redirecting...');
+                    window.location.replace('applicant-dashboard.html');
+                } catch (error) {
+                    console.error('Applicant login failed:', error);
+                    alert(error.message || 'Login dështoi. Ju lutem provoni përsëri.');
                 }
-                
-                console.log('User found:', user.email);
-                console.log('Stored password:', user.password ? 'Exists' : 'Missing');
-                console.log('Provided password:', password);
-                
-                // Verify password
-                if (user.password !== password) {
-                    console.log('Password mismatch');
-                    console.log('Expected:', user.password);
-                    console.log('Got:', password);
-                    alert('Fjalëkalimi është i gabuar! Ju lutem kontrolloni fjalëkalimin tuaj.\n\nPër llogari test:\nEmail: test@qpr.al\nPassword: test123');
-                    return;
-                }
-                
-                console.log('Login successful, redirecting...');
-                
-                // Login successful
-                localStorage.setItem('applicantEmail', email);
-                localStorage.setItem('applicantLoggedIn', 'true');
-                
-                console.log('LocalStorage set. Redirecting to dashboard...');
-                
-                // Use window.location.replace for better redirect
-                window.location.replace('applicant-dashboard.html');
             });
             
             // Forgot Password Modal
             const forgotPasswordForm = document.getElementById('forgotPasswordForm');
             if (forgotPasswordForm) {
-                forgotPasswordForm.addEventListener('submit', function(e) {
+                forgotPasswordForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const email = document.getElementById('forgotEmail').value.trim();
-                    const resultDiv = document.getElementById('passwordResult');
-                    
                     if (!email) {
                         showPasswordResult('error', 'Ju lutem shkruani email-in!');
                         return;
                     }
-                    
-                    // Check if user exists
-                    const users = JSON.parse(localStorage.getItem('users') || '[]');
-                    const user = users.find(u => u.email === email);
-                    
-                    if (!user) {
-                        showPasswordResult('error', 'Email nuk u gjet në sistem! Ju lutem kontrolloni email-in tuaj.');
-                        return;
+
+                    try {
+                        const result = await window.QprApi.forgotPassword(email);
+                        showPasswordResult('success', `Fjalëkalimi i përkohshëm është: <strong>${result.temporaryPassword}</strong><br><br>Ju lutem ruajeni dhe ndryshojeni pasi të hyni në dashboard.`);
+                    } catch (error) {
+                        showPasswordResult('error', error.message || 'Email nuk u gjet në sistem!');
                     }
-                    
-                    // Show password (in production, this would be sent via email)
-                    showPasswordResult('success', `Fjalëkalimi juaj është: <strong>${user.password}</strong><br><br>Ju lutem ruajeni këtë fjalëkalim dhe mund ta ndryshoni pas login-it në dashboard.`);
                 });
             }
         });

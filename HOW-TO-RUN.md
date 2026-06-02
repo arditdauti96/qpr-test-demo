@@ -1,127 +1,137 @@
 # Si të Ekzekutoni Projektin QPR
 
-## Metoda 1: Hapni direkt në Browser (Më e Thjeshtë)
+## Metoda e saktë
 
-1. Shkoni te folderi `QPR`
-2. Klikoni dy herë në `index.html`
-3. Faqja do të hapet në browser-in tuaj
+Ky projekt nuk është më static-only. Për funksionalitet të plotë duhet të nisni backend-in Node.js.
 
-**Ose:**
-- Right-click në `index.html`
-- Zgjidhni "Open with" → Zgjidhni browser-in tuaj (Chrome, Firefox, Edge, etj.)
+Struktura tani është e ndarë në `frontend/`, `backend/` dhe `database/`.
 
-## Metoda 2: Përdorni Server Lokal (Rekomanduar)
-
-### Në Windows (PowerShell):
-1. Hapni PowerShell në folderin `QPR`
-2. Ekzekutoni:
-   ```powershell
-   .\start-server.ps1
-   ```
-   
-   Ose nëse nuk punon:
-   ```powershell
-   python -m http.server 8000
-   ```
-   Pastaj hapni browser dhe shkoni te: `http://localhost:8000`
-
-### Në Windows (Command Prompt):
-1. Hapni Command Prompt në folderin `QPR`
-2. Ekzekutoni:
-   ```
-   start-server.bat
-   ```
-
-### Nëse keni Python:
-```bash
-python -m http.server 8000
-# Ose
-python3 -m http.server 8000
-```
-Pastaj hapni: `http://localhost:8000`
-
-## Metoda 3: Përdorni Live Server në VS Code
-
-1. Instaloni extension-in "Live Server" në VS Code
-2. Right-click në `index.html`
-3. Zgjidhni "Open with Live Server"
-4. Faqja do të hapet automatikisht në browser
-
-## Metoda 4: Përdorni Node.js (nëse e keni)
+### 1. Instaloni varësitë e backend-it
 
 ```bash
-npx http-server -p 8000
+npm --prefix backend install
 ```
 
-## Metoda 5: GitHub Pages (Për Testim Online)
+### 2. Konfiguroni variablat e ambientit
 
-Repo-ja është përgatitur për GitHub Pages me workflow automatik deploy.
-
-1. Hapni repo-n në GitHub.
-2. Shkoni te `Settings > Pages`.
-3. Te `Source`, zgjidhni `GitHub Actions`.
-4. Bëni një push në branch `main`.
-5. Prisni që workflow `Deploy GitHub Pages` të përfundojë.
-
-URL-ja e testimit zakonisht do të jetë:
+Krijoni një file `backend/.env` nga `backend/.env.example`:
 
 ```text
-https://USERNAME.github.io/REPO/
+PORT=3000
+JWT_SECRET=change-this-in-production
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/qpr
+DATABASE_SSL=false
 ```
 
-### Kufizim i rëndësishëm
+Sigurohuni që databaza `qpr` ekziston në PostgreSQL përpara `npm --prefix backend start`.
 
-- Projekti përdor `localStorage`, prandaj të dhënat ruhen vetëm në browser-in e atij përdoruesi.
-- Admini dhe aplikanti do të ndajnë të dhëna vetëm në të njëjtin browser/profil, jo mes pajisjeve të ndryshme.
+### 3. Nisni serverin
 
-## Shënime:
-
-- **Nëse keni error me localhost:** Thjesht hapni `index.html` direkt në browser
-- **Projekti është HTML statik:** Nuk ka nevojë për server të kompleks
-- **localStorage funksionon:** Edhe pa server, localStorage punon në browser
-
-## Troubleshooting:
-
-### "localhost refused to connect"
-- **Zgjidhje:** Hapni direkt `index.html` në browser
-- Ose përdorni një server lokal (Metoda 2 ose 3)
-
-### "Python not found"
-- Instaloni Python nga: https://www.python.org/
-- Ose përdorni Live Server në VS Code
-- Ose hapni direkt `index.html`
-
-### "Port already in use"
-- Përdorni një port tjetër: `python -m http.server 8080`
-- Ose mbyllni procesin që po përdor portin
-
-## Struktura e Projektit:
-
-```
-QPR/
-├── index.html              # Faqja kryesore - START HERE!
-├── application.html        # Zgjedhja e aplikimit
-├── login.html              # Login për aplikantët
-├── applicant-dashboard.html # Dashboard i aplikantit
-├── qpr-login.html          # Login për administratorët
-├── qpr-dashboard.html      # Dashboard QPR
-├── form-*.html             # Formularët e aplikimit
-└── styles.css              # Stilizimi
+```bash
+npm --prefix backend start
 ```
 
-## Kredencialet e Test:
+### 4. Hapni aplikacionin
 
-### Për Aplikantët:
-- Email: `test@qpr.al`
-- Password: `test123`
+```text
+http://localhost:3000
+```
 
-### Për Administratorët QPR:
-- Email: `admin@qpr.al`
-- Password: `admin123`
+## Kredencialet fillestare
 
----
+### Për administratorin QPR
 
-**Më e thjeshtë:** Thjesht klikoni dy herë në `index.html` dhe hapet në browser! 🚀
+- Email: `DEFAULT_ADMIN_EMAIL` nga `backend/.env`
+- Password: `DEFAULT_ADMIN_PASSWORD` nga `backend/.env`
+
+### Për aplikantët
+
+- Nuk ka më llogari hardcoded në frontend.
+- Një aplikant krijon llogarinë e vet në momentin që dërgon aplikimin e parë.
+
+## Çfarë nuk duhet përdorur më
+
+Këto mënyra mund të shfaqin vetëm HTML/CSS/JS, por nuk japin backend-in dhe do të sjellin gabime në API:
+
+- hapja direkte e `frontend/index.html`
+- `npx serve`
+- `python -m http.server`
+- Live Server pa një backend të veçantë Node në punë
+
+## Troubleshooting
+
+### `/api/health` kthen `404`
+
+Po përdorni një static server në vend të backend-it.
+
+Zgjidhja:
+
+```bash
+npm --prefix backend start
+```
+
+### Serveri dështon me gabim PostgreSQL
+
+Kontrolloni që:
+
+- PostgreSQL është ndezur
+- `DATABASE_URL` është e saktë
+- databaza ekziston
+- përdoruesi ka të drejta `CREATE`, `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+
+### Porta 3000 është e zënë
+
+Ndryshoni `PORT` në `backend/.env`, p.sh.:
+
+```text
+PORT=4000
+```
+
+Pastaj niseni përsëri me `npm --prefix backend start`.
+
+### Session/login nuk funksionon
+
+- Sigurohuni që faqja po hapet nga i njëjti host ku po punon backend-i.
+- Bëni refresh pas një deploy të ri.
+- Nëse cookie-t e sesionit janë nga një version i vjetër, bëni logout dhe login përsëri.
+
+## Deploy në host tjetër
+
+Ky projekt mund të zhvendoset lehtë në një host tjetër që mbështet Node.js:
+
+1. Kopjoni projektin.
+2. Ekzekutoni `npm --prefix backend install`.
+3. Vendosni `backend/.env`.
+4. Nisni me `npm --prefix backend start`.
+5. Bëni backup të databazës PostgreSQL.
+
+Për hostim të qëndrueshëm rekomandohet përdorimi i PM2, systemd ose Docker.
+
+## Deploy live me Render
+
+Rruga më e shpejtë për ta hedhur live është Render, sepse mban bashkë Node.js dhe PostgreSQL.
+
+1. Shtyjeni projektin në një repo GitHub.
+2. Në Render krijoni një `Blueprint` nga repo-ja.
+3. Render do të krijojë automatikisht:
+	- web service për backend + frontend statik
+	- PostgreSQL database
+4. Vendosni env vars këto vlera:
+
+```text
+NODE_ENV=production
+JWT_SECRET=<sekret i fortë>
+DEFAULT_ADMIN_EMAIL=admin@qpr.al
+DEFAULT_ADMIN_PASSWORD=<fjalekalim i fortë>
+DEFAULT_ADMIN_NAME=Administrator QPR
+```
+
+5. `DATABASE_URL` dhe `PORT` merren automatikisht nga Render blueprint.
+6. Pasi deploy të mbarojë, Render do t'ju japë linkun live `https://...onrender.com`.
+
+## Shënim për GitHub Pages
+
+GitHub Pages mund të shërbejë vetëm versionin statik të UI-së. Nuk mund të ekzekutojë `server.js` ose PostgreSQL, prandaj nuk është më mjedis i mjaftueshëm për versionin me backend.
 
 
 

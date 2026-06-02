@@ -258,6 +258,30 @@ function handleGradeBlur(event) {
     input.setCustomValidity('');
 }
 
+function focusFirstInvalidField(form) {
+    const firstInvalidField = Array.from(form.elements).find(field => {
+        return typeof field.checkValidity === 'function' && !field.disabled && !field.checkValidity();
+    });
+
+    if (!firstInvalidField) {
+        return false;
+    }
+
+    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    try {
+        firstInvalidField.focus({ preventScroll: true });
+    } catch (error) {
+        firstInvalidField.focus();
+    }
+
+    if (typeof firstInvalidField.reportValidity === 'function') {
+        firstInvalidField.reportValidity();
+    }
+
+    return true;
+}
+
 function setupGradeInputs() {
     const gradeInputs = document.querySelectorAll('#notaMesatareNente, #notaMesatareGjimnaz, #notaMesatareProfesionale');
     gradeInputs.forEach(input => {
@@ -1096,7 +1120,7 @@ function moveSecuritySectionBeforeAccount() {
 }
 
 // Form Submission - Create Account and Save Application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Generate tables first
     generatePyetësoriTable();
     generateShendetesorTable();
@@ -1197,10 +1221,21 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('applicantLoggedIn');
-    const loggedInEmail = localStorage.getItem('applicantEmail');
+    let loggedInEmail = '';
+    let hasApplicantSession = false;
+
+    if (window.QprApi) {
+        try {
+            const sessionPayload = await window.QprApi.fetchApplicantApplications();
+            loggedInEmail = sessionPayload?.user?.email || '';
+            hasApplicantSession = Boolean(loggedInEmail);
+        } catch (error) {
+            loggedInEmail = '';
+            hasApplicantSession = false;
+        }
+    }
     
-    if (isLoggedIn && loggedInEmail) {
+    if (hasApplicantSession) {
         // User is logged in - prefill email and hide password fields
         const emailField = document.getElementById('accountEmail');
         const passwordGroup = document.getElementById('passwordGroup');
@@ -1254,6 +1289,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission
     const form = document.getElementById('ushtarForm') || document.querySelector('form');
     if (!form) return;
+
+    form.addEventListener('invalid', function(event) {
+        event.preventDefault();
+        focusFirstInvalidField(form);
+    }, true);
+
+    const submitButton = document.getElementById('submitButton');
+    if (submitButton) {
+        submitButton.addEventListener('click', function() {
+            if (!form.checkValidity()) {
+                focusFirstInvalidField(form);
+            }
+        });
+    }
     
     form.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -1267,11 +1316,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Get email - use logged in email if available
-    const email = isLoggedIn && loggedInEmail ? loggedInEmail : document.getElementById('accountEmail').value;
+    const email = hasApplicantSession && loggedInEmail ? loggedInEmail : document.getElementById('accountEmail').value;
     
     // Validate password only if user is not logged in or creating new account
     let password = '';
-    if (!isLoggedIn) {
+    if (!hasApplicantSession) {
         password = document.getElementById('accountPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
         
@@ -1283,13 +1332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (password !== confirmPassword) {
             alert('Fjalëkalimet nuk përputhen! Ju lutem kontrolloni.');
             return;
-        }
-    } else {
-        // User is logged in - get password from existing account
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const existingUser = users.find(u => u.email === email);
-        if (existingUser) {
-            password = existingUser.password; // Në prodhim, nuk duhet të ruajmë password në plain text
         }
     }
     
@@ -1305,7 +1347,6 @@ document.addEventListener('DOMContentLoaded', function() {
         id: Date.now().toString(), // Generate unique ID
         type: getCurrentApplicationType(),
         email: email,
-        password: password, // Në prodhim, duhet të hash-ojmë
         submittedDate: formatDateValue(new Date()),
         status: 'pending',
         personalData: {
@@ -1357,55 +1398,25 @@ document.addEventListener('DOMContentLoaded', function() {
         applicationData.documents = allDocuments;
     }
     
-    // Save application to localStorage
-    let applications = JSON.parse(localStorage.getItem('applications') || '[]');
-    applications.push(applicationData);
-    localStorage.setItem('applications', JSON.stringify(applications));
-    
-    // Handle user account
-    let users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userExists = users.find(u => u.email === email);
-    
-    if (userExists) {
-        // User already exists - just add application to their list
-        userExists.applications = userExists.applications || [];
-        if (!userExists.applications.includes(applicationData.id)) {
-            userExists.applications.push(applicationData.id);
+    try {
+        const result = await window.QprApi.submitApplication(applicationData, password);
+        const savedApplication = result.application || applicationData;
+
+        if (hasApplicantSession) {
+            alert('Aplikimi juaj u dërgua me sukses!\n\nAplikimi është i lidhur me llogarinë tuaj: ' + email + '\n\nJu do të ridrejtoheni në dashboard...');
+        } else {
+            alert('Aplikimi juaj u dërgua me sukses!\n\nLlogaria juaj u krijua me email: ' + email + '\n\nJu do të ridrejtoheni në dashboard...');
         }
-        users = users.map(u => u.email === email ? userExists : u);
-        
-        // Show success message for existing user
-        alert('Aplikimi juaj u dërgua me sukses!\n\nAplikimi është i lidhur me llogarinë tuaj: ' + email + '\n\nJu do të ridrejtoheni në dashboard...');
-    } else {
-        // Create new user account
-        users.push({
-            email: email,
-            password: password, // Në prodhim, duhet të hash-ojmë
-            createdAt: new Date().toISOString(),
-            applications: [applicationData.id]
-        });
-        
-        // Auto-login new user
-        localStorage.setItem('applicantEmail', email);
-        localStorage.setItem('applicantLoggedIn', 'true');
-        
-        // Show success message with credentials for new user
-        alert('Aplikimi juaj u dërgua me sukses!\n\nKredencialet tuaja:\nEmail: ' + email + '\nFjalëkalim: ' + password + '\n\nJu do të ridrejtoheni në dashboard...');
+
+        generateAllPdfs(savedApplication, formValues);
+
+        setTimeout(() => {
+            window.location.href = 'applicant-dashboard.html';
+        }, 3000);
+    } catch (error) {
+        console.error('Application submission failed:', error);
+        alert(error.message || 'Ndodhi një gabim gjatë dërgimit të aplikimit. Ju lutem provoni përsëri.');
     }
-    
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Ensure user is logged in
-    localStorage.setItem('applicantEmail', email);
-    localStorage.setItem('applicantLoggedIn', 'true');
-    
-    // Generate PDFs
-    generateAllPdfs(applicationData, formValues);
-    
-    // Redirect to dashboard
-    setTimeout(() => {
-        window.location.href = 'applicant-dashboard.html';
-    }, 3000);
     });
     
     // Add password confirmation validation
@@ -1490,7 +1501,7 @@ function addBlockText(doc, text, y, options = {}) {
 }
 
 function markOption(condition) {
-    return condition ? '☒' : '☐';
+    return condition ? '[X]' : '[ ]';
 }
 
 function generateApplicationPdf(applicationData, formValues) {
@@ -1623,7 +1634,7 @@ function generateDeclarationPdf(applicationData, formValues) {
         y = addBlockText(doc, 'Nëse po, specifiko të dhënat e mëposhtme: _______________________________', y);
     }
     
-    y = addBlockText(doc, '□ ndalim i daljes jashtë shtetit.    □ detyrim për t’u paraqitur në Policinë Gjyqësore.', y + 2);
+    y = addBlockText(doc, '[ ] ndalim i daljes jashtë shtetit.    [ ] detyrim për t\'u paraqitur në Policinë Gjyqësore.', y + 2);
     
     y = addBlockText(doc, 'DEKLARUESI                               MARRËSI I VETËDEKLARIMIT', y + 10);
     y = addBlockText(doc, `${applicantName || '_________________________'}               _____________________________`, y);

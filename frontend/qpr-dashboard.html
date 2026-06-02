@@ -204,6 +204,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="api-client.js"></script>
     <script>
         function formatDateForDisplay(value) {
             if (!value) return '';
@@ -526,36 +527,61 @@
             `;
         }
 
-        function refreshAdminDashboardData() {
+        async function syncAdminDashboardData() {
+            if (!window.QprApi) {
+                return true;
+            }
+
+            try {
+                await window.QprApi.fetchAdminApplications();
+                return true;
+            } catch (error) {
+                console.error('Failed to sync admin dashboard data:', error);
+                if (error.status === 401) {
+                    window.QprApi.clearAdminSession();
+                    window.location.href = 'qpr-login.html';
+                }
+                return false;
+            }
+        }
+
+        async function refreshAdminDashboardData() {
+            const synced = await syncAdminDashboardData();
+            if (!synced) {
+                return false;
+            }
+
             loadApplications();
 
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab?.id === 'statsTab') {
                 loadDetailedStats();
             }
+
+            if (activeTab?.id === 'benefitsTab') {
+                loadBenefitsEditor();
+            }
+
+            return true;
         }
 
         // Check if admin is logged in
-        window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('qprLoggedIn');
-            const email = localStorage.getItem('qprEmail');
-            
-            if (!isLoggedIn || !email) {
+        window.addEventListener('DOMContentLoaded', async function() {
+            if (!window.QprApi) {
                 window.location.href = 'qpr-login.html';
                 return;
             }
             
-            const adminName = localStorage.getItem('qprAdminName') || email;
-            document.getElementById('adminName').textContent = adminName;
-            
-            // Kontrollo nëse ka aplikime, nëse jo, fut të dhëna test automatikisht
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-            if (applications.length === 0) {
-                // Fut të dhëna test automatikisht nëse nuk ka aplikime (pa konfirmim)
-                addTestDataSilent();
+            const synced = await refreshAdminDashboardData();
+            if (!synced) {
+                window.location.href = 'qpr-login.html';
+                return;
             }
-            
-            refreshAdminDashboardData();
+
+            const adminSession = window.QprApi.getAdminSessionData();
+            const adminName = adminSession.admin?.name || adminSession.admin?.email || 'Administrator';
+            document.getElementById('adminName').textContent = adminName;
+
             loadStats();
             
             const filterInputs = document.querySelectorAll('input[name="statusFilter"], input[name="typeFilter"]');
@@ -574,24 +600,10 @@
             ['status', 'type'].forEach(group => toggleFilterGroup(group, false));
         });
 
-        window.addEventListener('storage', function(event) {
-            if (event.key !== 'applications' && event.key !== 'users') {
-                return;
+        async function logout() {
+            if (window.QprApi) {
+                await window.QprApi.logoutAdmin();
             }
-
-            const isLoggedIn = localStorage.getItem('qprLoggedIn');
-            const email = localStorage.getItem('qprEmail');
-            if (!isLoggedIn || !email) {
-                return;
-            }
-
-            refreshAdminDashboardData();
-        });
-
-        function logout() {
-            localStorage.removeItem('qprLoggedIn');
-            localStorage.removeItem('qprEmail');
-            localStorage.removeItem('qprAdminName');
             window.location.href = 'qpr-login.html';
         }
 
@@ -614,7 +626,7 @@
         }
 
         function loadApplications() {
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const applications = window.QprApi ? window.QprApi.getAdminSessionData().applications : [];
             
             // Update stats
             document.getElementById('totalApps').textContent = applications.length;
@@ -794,7 +806,7 @@
         }
 
         function loadDetailedStats() {
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const applications = window.QprApi ? window.QprApi.getAdminSessionData().applications : [];
             const statsDiv = document.getElementById('detailedStats');
             
             // Group by type
@@ -1041,58 +1053,51 @@
             modal.style.display = 'block';
         }
 
-        function updateApplicationStatus(index, newStatus) {
+        async function updateApplicationStatus(index, newStatus) {
             const app = window.allApplications[index];
             if (!app) return;
-            
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-            const appIndex = applications.findIndex(a => a.id === app.id);
-            
-            if (appIndex !== -1) {
-                applications[appIndex].status = newStatus;
-                localStorage.setItem('applications', JSON.stringify(applications));
-                
+
+            try {
+                const result = await window.QprApi.updateApplicationStatus(app.id, newStatus);
+                const updatedApplication = result.application || app;
+
                 if (newStatus === 'approved') {
                     try {
-                        generateAcceptancePdf(applications[appIndex]);
+                        generateAcceptancePdf(updatedApplication);
                     } catch (error) {
                         console.error('Failed to generate acceptance PDF:', error);
                     }
                 }
-                
-                // Reload
-                refreshAdminDashboardData();
+
+                await refreshAdminDashboardData();
 
                 if (newStatus === 'approved') {
                     showApplicationDetails(index);
                 } else {
                     closeApplicationModal();
                 }
-                
+
                 alert(`Aplikimi u ${newStatus === 'approved' ? 'aprova' : newStatus === 'rejected' ? 'refuzua' : 'shqyrtua'} me sukses!`);
+            } catch (error) {
+                alert(error.message || 'Përditësimi i statusit dështoi.');
             }
         }
 
-        function addComment(index) {
+        async function addComment(index) {
             const app = window.allApplications[index];
             if (!app) return;
             
             const comment = prompt('Shkruaj komentin për këtë aplikim:');
             if (!comment) return;
-            
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-            const appIndex = applications.findIndex(a => a.id === app.id);
-            
-            if (appIndex !== -1) {
-                applications[appIndex].comments = comment;
-                localStorage.setItem('applications', JSON.stringify(applications));
-                
-                // Reload
-                refreshAdminDashboardData();
+
+            try {
+                await window.QprApi.updateApplicationComment(app.id, comment);
+                await refreshAdminDashboardData();
                 closeApplicationModal();
                 showApplicationDetails(index);
-                
                 alert('Komenti u shtua me sukses!');
+            } catch (error) {
+                alert(error.message || 'Ruajtja e komentit dështoi.');
             }
         }
 
@@ -2096,13 +2101,14 @@
         ];
 
         function loadBenefitsEditor() {
-            const savedBenefits = JSON.parse(localStorage.getItem('benefitsData') || 'null');
-            const benefits = savedBenefits || defaultBenefits;
+            const sessionBenefits = window.QprApi ? window.QprApi.getAdminSessionData().benefits : [];
+            const benefits = window.currentBenefitsDraft || (sessionBenefits.length > 0 ? sessionBenefits : defaultBenefits);
+            window.currentBenefitsDraft = JSON.parse(JSON.stringify(benefits));
             
             const formContainer = document.getElementById('benefitsEditForm');
             formContainer.innerHTML = '';
             
-            benefits.forEach((benefit, index) => {
+            window.currentBenefitsDraft.forEach((benefit, index) => {
                 const benefitCard = document.createElement('div');
                 benefitCard.className = 'benefit-edit-card';
                 benefitCard.innerHTML = `
@@ -2142,52 +2148,63 @@
         }
 
         function updateBenefitTitle(benefitIndex, newTitle) {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
             if (benefits[benefitIndex]) {
                 benefits[benefitIndex].title = newTitle;
-                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                window.currentBenefitsDraft = benefits;
             }
         }
 
         function updateBenefitItem(benefitIndex, itemIndex, newValue) {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
             if (benefits[benefitIndex] && benefits[benefitIndex].items[itemIndex]) {
                 benefits[benefitIndex].items[itemIndex] = newValue;
-                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                window.currentBenefitsDraft = benefits;
             }
         }
 
         function addBenefitItem(benefitIndex) {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
             if (benefits[benefitIndex]) {
                 benefits[benefitIndex].items.push('Item i ri');
-                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                window.currentBenefitsDraft = benefits;
                 loadBenefitsEditor();
             }
         }
 
         function removeBenefitItem(benefitIndex, itemIndex) {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
             if (benefits[benefitIndex] && benefits[benefitIndex].items.length > 1) {
                 benefits[benefitIndex].items.splice(itemIndex, 1);
-                localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                window.currentBenefitsDraft = benefits;
                 loadBenefitsEditor();
             } else {
                 alert('Duhet të ketë të paktën një item në çdo kategori!');
             }
         }
 
-        function saveBenefits() {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
-            localStorage.setItem('benefitsData', JSON.stringify(benefits));
-            alert('Përfitimet u ruajtën me sukses!');
+        async function saveBenefits() {
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
+            try {
+                await window.QprApi.saveBenefits(benefits);
+                window.currentBenefitsDraft = JSON.parse(JSON.stringify(benefits));
+                alert('Përfitimet u ruajtën me sukses!');
+            } catch (error) {
+                alert(error.message || 'Ruajtja e përfitimeve dështoi.');
+            }
         }
 
-        function resetBenefits() {
+        async function resetBenefits() {
             if (confirm('Jeni të sigurt që dëshironi të rivendosni të gjitha përfitimet në vlerat default?')) {
-                localStorage.removeItem('benefitsData');
+                window.currentBenefitsDraft = JSON.parse(JSON.stringify(defaultBenefits));
                 loadBenefitsEditor();
-                alert('Përfitimet u rivendosën në vlerat default!');
+
+                try {
+                    await window.QprApi.saveBenefits(defaultBenefits);
+                    alert('Përfitimet u rivendosën në vlerat default!');
+                } catch (error) {
+                    alert(error.message || 'Rivendosja e përfitimeve dështoi.');
+                }
             }
         }
 
@@ -2207,13 +2224,13 @@
         }
 
         function addNewBenefitCategory() {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
             const newCategory = {
                 title: 'Kategori e Re',
                 items: ['Item i parë']
             };
             benefits.push(newCategory);
-            localStorage.setItem('benefitsData', JSON.stringify(benefits));
+            window.currentBenefitsDraft = benefits;
             loadBenefitsEditor();
             
             // Hap kategorinë e re automatikisht
@@ -2224,11 +2241,11 @@
         }
 
         function removeBenefitCategory(index) {
-            const benefits = JSON.parse(localStorage.getItem('benefitsData') || JSON.stringify(defaultBenefits));
+            const benefits = window.currentBenefitsDraft || JSON.parse(JSON.stringify(defaultBenefits));
             if (benefits.length > 1) {
                 if (confirm('Jeni të sigurt që dëshironi të fshini këtë kategori?')) {
                     benefits.splice(index, 1);
-                    localStorage.setItem('benefitsData', JSON.stringify(benefits));
+                    window.currentBenefitsDraft = benefits;
                     loadBenefitsEditor();
                 }
             } else {
@@ -2236,545 +2253,6 @@
             }
         }
 
-        // Funksion për të futur të dhëna test
-        function addTestData() {
-            if (!confirm('A dëshironi të futni të dhëna test? Kjo do të shtojë 6 aplikime dhe 6 përdorues test.')) {
-                return;
-            }
-
-            const testApplications = [
-                {
-                    id: 'APP-001',
-                    type: 'Ushtar ose Detar Aktiv',
-                    email: 'test1@example.com',
-                    submittedDate: '15-11-2024',
-                    status: 'pending',
-                    personalData: {
-                        firstName: 'Arben',
-                        lastName: 'Krasniqi',
-                        birthDate: '15-05-1998',
-                        phone: '+355691234567',
-                        address: 'Rr. Dëshmorët e Kombit, Tiranë',
-                        email: 'test1@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i mesëm i plotë',
-                        school: 'Shkolla e Mesme "Ismail Qemali"',
-                        graduationYear: '2016'
-                    },
-                    formData: {
-                        emri: 'Arben',
-                        mbiemri: 'Krasniqi',
-                        datelindja: '15-05-1998',
-                        vendlindja: 'Tiranë',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Mashkull',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Dëshmorët e Kombit, Tiranë',
-                        nrKontakti: '+355691234567',
-                        niveli_arsimit: 'Arsim i mesëm i plotë'
-                    },
-                    comments: ''
-                },
-                {
-                    id: 'APP-002',
-                    type: 'Oficer - Akademia e Forcave',
-                    email: 'test2@example.com',
-                    submittedDate: '20-11-2024',
-                    status: 'reviewed',
-                    personalData: {
-                        firstName: 'Elena',
-                        lastName: 'Gjoka',
-                        birthDate: '22-03-2000',
-                        phone: '+355692345678',
-                        address: 'Rr. Skënderbej, Durrës',
-                        email: 'test2@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i lartë',
-                        school: 'Universiteti i Tiranës',
-                        graduationYear: '2022'
-                    },
-                    formData: {
-                        emri: 'Elena',
-                        mbiemri: 'Gjoka',
-                        datelindja: '22-03-2000',
-                        vendlindja: 'Durrës',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Femër',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Skënderbej, Durrës',
-                        nrKontakti: '+355692345678',
-                        niveli_arsimit: 'Arsim i lartë'
-                    },
-                    comments: 'Kandidatja ka arsim të lartë dhe është e përshtatshme për pozicionin.'
-                },
-                {
-                    id: 'APP-003',
-                    type: 'Ushtar Rezervist',
-                    email: 'test3@example.com',
-                    submittedDate: '25-11-2024',
-                    status: 'approved',
-                    personalData: {
-                        firstName: 'Marko',
-                        lastName: 'Hoxha',
-                        birthDate: '10-08-1995',
-                        phone: '+355693456789',
-                        address: 'Rr. Fan Noli, Shkodër',
-                        email: 'test3@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i mesëm i plotë',
-                        school: 'Shkolla e Mesme "28 Nëntori"',
-                        graduationYear: '2013'
-                    },
-                    formData: {
-                        emri: 'Marko',
-                        mbiemri: 'Hoxha',
-                        datelindja: '10-08-1995',
-                        vendlindja: 'Shkodër',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Mashkull',
-                        gjendja_civile: 'I martuar',
-                        adresa: 'Rr. Fan Noli, Shkodër',
-                        nrKontakti: '+355693456789',
-                        niveli_arsimit: 'Arsim i mesëm i plotë'
-                    },
-                    comments: 'Aplikimi u aprovua me sukses. Kandidati ka plotësuar të gjitha kërkesat.'
-                },
-                {
-                    id: 'APP-004',
-                    type: 'Oficer - Studime Jashtë Vendit',
-                    email: 'test4@example.com',
-                    submittedDate: '28-11-2024',
-                    status: 'rejected',
-                    personalData: {
-                        firstName: 'Ana',
-                        lastName: 'Dervishi',
-                        birthDate: '05-12-1999',
-                        phone: '+355694567890',
-                        address: 'Rr. Kavajë, Vlorë',
-                        email: 'test4@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i lartë',
-                        school: 'Universiteti Politeknik i Tiranës',
-                        graduationYear: '2021'
-                    },
-                    formData: {
-                        emri: 'Ana',
-                        mbiemri: 'Dervishi',
-                        datelindja: '05-12-1999',
-                        vendlindja: 'Vlorë',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Femër',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Kavajë, Vlorë',
-                        nrKontakti: '+355694567890',
-                        niveli_arsimit: 'Arsim i lartë'
-                    },
-                    comments: 'Aplikimi u refuzua për shkak të dokumenteve jo të plota.'
-                },
-                {
-                    id: 'APP-005',
-                    type: 'Ushtar ose Detar Aktiv',
-                    email: 'test5@example.com',
-                    submittedDate: '01-12-2024',
-                    status: 'pending',
-                    personalData: {
-                        firstName: 'Dritan',
-                        lastName: 'Berisha',
-                        birthDate: '18-07-1997',
-                        phone: '+355695678901',
-                        address: 'Rr. Elbasan, Korçë',
-                        email: 'test5@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i mesëm i plotë',
-                        school: 'Shkolla e Mesme "Gjergj Kastrioti"',
-                        graduationYear: '2015'
-                    },
-                    formData: {
-                        emri: 'Dritan',
-                        mbiemri: 'Berisha',
-                        datelindja: '18-07-1997',
-                        vendlindja: 'Korçë',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Mashkull',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Elbasan, Korçë',
-                        nrKontakti: '+355695678901',
-                        niveli_arsimit: 'Arsim i mesëm i plotë'
-                    },
-                    comments: ''
-                },
-                {
-                    id: 'APP-006',
-                    type: 'Civil',
-                    email: 'test6@example.com',
-                    submittedDate: '03-12-2024',
-                    status: 'reviewed',
-                    personalData: {
-                        firstName: 'Blerta',
-                        lastName: 'Kulla',
-                        birthDate: '30-01-1996',
-                        phone: '+355696789012',
-                        address: 'Rr. Rilindasit, Gjirokastër',
-                        email: 'test6@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i lartë',
-                        school: 'Universiteti i Gjirokastrës',
-                        graduationYear: '2018'
-                    },
-                    formData: {
-                        emri: 'Blerta',
-                        mbiemri: 'Kulla',
-                        datelindja: '30-01-1996',
-                        vendlindja: 'Gjirokastër',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Femër',
-                        gjendja_civile: 'I martuar',
-                        adresa: 'Rr. Rilindasit, Gjirokastër',
-                        nrKontakti: '+355696789012',
-                        niveli_arsimit: 'Arsim i lartë'
-                    },
-                    comments: 'Kandidatja është në shqyrtim për pozicionin civil.'
-                }
-            ];
-
-            const testUsers = [
-                {
-                    email: 'test1@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-15T10:00:00.000Z',
-                    applications: ['APP-001']
-                },
-                {
-                    email: 'test2@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-20T10:00:00.000Z',
-                    applications: ['APP-002']
-                },
-                {
-                    email: 'test3@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-25T10:00:00.000Z',
-                    applications: ['APP-003']
-                },
-                {
-                    email: 'test4@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-28T10:00:00.000Z',
-                    applications: ['APP-004']
-                },
-                {
-                    email: 'test5@example.com',
-                    password: 'test123',
-                    createdAt: '2024-12-01T10:00:00.000Z',
-                    applications: ['APP-005']
-                },
-                {
-                    email: 'test6@example.com',
-                    password: 'test123',
-                    createdAt: '2024-12-03T10:00:00.000Z',
-                    applications: ['APP-006']
-                }
-            ];
-
-            // Ruaj aplikimet
-            const existingApplications = JSON.parse(localStorage.getItem('applications') || '[]');
-            const existingIds = existingApplications.map(app => app.id);
-            const newApplications = testApplications.filter(app => !existingIds.includes(app.id));
-            
-            if (newApplications.length > 0) {
-                const allApplications = [...existingApplications, ...newApplications];
-                localStorage.setItem('applications', JSON.stringify(allApplications));
-            }
-
-            // Ruaj përdoruesit
-            const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-            const existingEmails = existingUsers.map(user => user.email);
-            const newUsers = testUsers.filter(user => !existingEmails.includes(user.email));
-            
-            if (newUsers.length > 0) {
-                const allUsers = [...existingUsers, ...newUsers];
-                localStorage.setItem('users', JSON.stringify(allUsers));
-            }
-
-            // Rikarko aplikimet
-            refreshAdminDashboardData();
-            
-            const totalNew = newApplications.length + newUsers.length;
-            if (totalNew > 0) {
-                alert(`✅ Të dhënat test u shtuan me sukses!\n\n• ${newApplications.length} aplikime të reja\n• ${newUsers.length} përdorues të rinj\n\nKredencialet: test1@example.com - test6@example.com (password: test123)`);
-            } else {
-                alert('ℹ️ Të gjitha të dhënat test ekzistojnë tashmë.');
-            }
-        }
-
-        // Funksion për të futur të dhëna test automatikisht (pa konfirmim)
-        function addTestDataSilent() {
-            const testApplications = [
-                {
-                    id: 'APP-001',
-                    type: 'Ushtar ose Detar Aktiv',
-                    email: 'test1@example.com',
-                    submittedDate: '15-11-2024',
-                    status: 'pending',
-                    personalData: {
-                        firstName: 'Arben',
-                        lastName: 'Krasniqi',
-                        birthDate: '15-05-1998',
-                        phone: '+355691234567',
-                        address: 'Rr. Dëshmorët e Kombit, Tiranë',
-                        email: 'test1@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i mesëm i plotë',
-                        school: 'Shkolla e Mesme "Ismail Qemali"',
-                        graduationYear: '2016'
-                    },
-                    formData: {
-                        emri: 'Arben',
-                        mbiemri: 'Krasniqi',
-                        datelindja: '15-05-1998',
-                        vendlindja: 'Tiranë',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Mashkull',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Dëshmorët e Kombit, Tiranë',
-                        nrKontakti: '+355691234567',
-                        niveli_arsimit: 'Arsim i mesëm i plotë'
-                    },
-                    comments: ''
-                },
-                {
-                    id: 'APP-002',
-                    type: 'Oficer - Akademia e Forcave',
-                    email: 'test2@example.com',
-                    submittedDate: '20-11-2024',
-                    status: 'reviewed',
-                    personalData: {
-                        firstName: 'Elena',
-                        lastName: 'Gjoka',
-                        birthDate: '22-03-2000',
-                        phone: '+355692345678',
-                        address: 'Rr. Skënderbej, Durrës',
-                        email: 'test2@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i lartë',
-                        school: 'Universiteti i Tiranës',
-                        graduationYear: '2022'
-                    },
-                    formData: {
-                        emri: 'Elena',
-                        mbiemri: 'Gjoka',
-                        datelindja: '22-03-2000',
-                        vendlindja: 'Durrës',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Femër',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Skënderbej, Durrës',
-                        nrKontakti: '+355692345678',
-                        niveli_arsimit: 'Arsim i lartë'
-                    },
-                    comments: 'Kandidatja ka arsim të lartë dhe është e përshtatshme për pozicionin.'
-                },
-                {
-                    id: 'APP-003',
-                    type: 'Ushtar Rezervist',
-                    email: 'test3@example.com',
-                    submittedDate: '25-11-2024',
-                    status: 'approved',
-                    personalData: {
-                        firstName: 'Marko',
-                        lastName: 'Hoxha',
-                        birthDate: '10-08-1995',
-                        phone: '+355693456789',
-                        address: 'Rr. Fan Noli, Shkodër',
-                        email: 'test3@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i mesëm i plotë',
-                        school: 'Shkolla e Mesme "28 Nëntori"',
-                        graduationYear: '2013'
-                    },
-                    formData: {
-                        emri: 'Marko',
-                        mbiemri: 'Hoxha',
-                        datelindja: '10-08-1995',
-                        vendlindja: 'Shkodër',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Mashkull',
-                        gjendja_civile: 'I martuar',
-                        adresa: 'Rr. Fan Noli, Shkodër',
-                        nrKontakti: '+355693456789',
-                        niveli_arsimit: 'Arsim i mesëm i plotë'
-                    },
-                    comments: 'Aplikimi u aprovua me sukses. Kandidati ka plotësuar të gjitha kërkesat.'
-                },
-                {
-                    id: 'APP-004',
-                    type: 'Oficer - Studime Jashtë Vendit',
-                    email: 'test4@example.com',
-                    submittedDate: '28-11-2024',
-                    status: 'rejected',
-                    personalData: {
-                        firstName: 'Ana',
-                        lastName: 'Dervishi',
-                        birthDate: '05-12-1999',
-                        phone: '+355694567890',
-                        address: 'Rr. Kavajë, Vlorë',
-                        email: 'test4@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i lartë',
-                        school: 'Universiteti Politeknik i Tiranës',
-                        graduationYear: '2021'
-                    },
-                    formData: {
-                        emri: 'Ana',
-                        mbiemri: 'Dervishi',
-                        datelindja: '05-12-1999',
-                        vendlindja: 'Vlorë',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Femër',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Kavajë, Vlorë',
-                        nrKontakti: '+355694567890',
-                        niveli_arsimit: 'Arsim i lartë'
-                    },
-                    comments: 'Aplikimi u refuzua për shkak të dokumenteve jo të plota.'
-                },
-                {
-                    id: 'APP-005',
-                    type: 'Ushtar ose Detar Aktiv',
-                    email: 'test5@example.com',
-                    submittedDate: '01-12-2024',
-                    status: 'pending',
-                    personalData: {
-                        firstName: 'Dritan',
-                        lastName: 'Berisha',
-                        birthDate: '18-07-1997',
-                        phone: '+355695678901',
-                        address: 'Rr. Elbasan, Korçë',
-                        email: 'test5@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i mesëm i plotë',
-                        school: 'Shkolla e Mesme "Gjergj Kastrioti"',
-                        graduationYear: '2015'
-                    },
-                    formData: {
-                        emri: 'Dritan',
-                        mbiemri: 'Berisha',
-                        datelindja: '18-07-1997',
-                        vendlindja: 'Korçë',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Mashkull',
-                        gjendja_civile: 'Beqar',
-                        adresa: 'Rr. Elbasan, Korçë',
-                        nrKontakti: '+355695678901',
-                        niveli_arsimit: 'Arsim i mesëm i plotë'
-                    },
-                    comments: ''
-                },
-                {
-                    id: 'APP-006',
-                    type: 'Civil',
-                    email: 'test6@example.com',
-                    submittedDate: '03-12-2024',
-                    status: 'reviewed',
-                    personalData: {
-                        firstName: 'Blerta',
-                        lastName: 'Kulla',
-                        birthDate: '30-01-1996',
-                        phone: '+355696789012',
-                        address: 'Rr. Rilindasit, Gjirokastër',
-                        email: 'test6@example.com'
-                    },
-                    educationData: {
-                        level: 'Arsim i lartë',
-                        school: 'Universiteti i Gjirokastrës',
-                        graduationYear: '2018'
-                    },
-                    formData: {
-                        emri: 'Blerta',
-                        mbiemri: 'Kulla',
-                        datelindja: '30-01-1996',
-                        vendlindja: 'Gjirokastër',
-                        shtetas: 'Shqiptar',
-                        gjinia: 'Femër',
-                        gjendja_civile: 'I martuar',
-                        adresa: 'Rr. Rilindasit, Gjirokastër',
-                        nrKontakti: '+355696789012',
-                        niveli_arsimit: 'Arsim i lartë'
-                    },
-                    comments: 'Kandidatja është në shqyrtim për pozicionin civil.'
-                }
-            ];
-
-            const testUsers = [
-                {
-                    email: 'test1@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-15T10:00:00.000Z',
-                    applications: ['APP-001']
-                },
-                {
-                    email: 'test2@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-20T10:00:00.000Z',
-                    applications: ['APP-002']
-                },
-                {
-                    email: 'test3@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-25T10:00:00.000Z',
-                    applications: ['APP-003']
-                },
-                {
-                    email: 'test4@example.com',
-                    password: 'test123',
-                    createdAt: '2024-11-28T10:00:00.000Z',
-                    applications: ['APP-004']
-                },
-                {
-                    email: 'test5@example.com',
-                    password: 'test123',
-                    createdAt: '2024-12-01T10:00:00.000Z',
-                    applications: ['APP-005']
-                },
-                {
-                    email: 'test6@example.com',
-                    password: 'test123',
-                    createdAt: '2024-12-03T10:00:00.000Z',
-                    applications: ['APP-006']
-                }
-            ];
-
-            // Ruaj aplikimet
-            const existingApplications = JSON.parse(localStorage.getItem('applications') || '[]');
-            const existingIds = existingApplications.map(app => app.id);
-            const newApplications = testApplications.filter(app => !existingIds.includes(app.id));
-            
-            if (newApplications.length > 0) {
-                const allApplications = [...existingApplications, ...newApplications];
-                localStorage.setItem('applications', JSON.stringify(allApplications));
-            }
-
-            // Ruaj përdoruesit
-            const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-            const existingEmails = existingUsers.map(user => user.email);
-            const newUsers = testUsers.filter(user => !existingEmails.includes(user.email));
-            
-            if (newUsers.length > 0) {
-                const allUsers = [...existingUsers, ...newUsers];
-                localStorage.setItem('users', JSON.stringify(allUsers));
-            }
-        }
     </script>
 </body>
 </html>

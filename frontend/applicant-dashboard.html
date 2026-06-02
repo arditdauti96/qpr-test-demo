@@ -173,6 +173,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="api-client.js"></script>
     <script src="script.js"></script>
     <script>
         function formatDateForDisplay(value) {
@@ -527,7 +528,7 @@
         }
 
         function getLatestUserApplication(email) {
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const applications = window.QprApi ? window.QprApi.getApplicantSessionData().applications : [];
             const userApplications = applications.filter(app => app.email === email);
             return userApplications.length > 0 ? userApplications[userApplications.length - 1] : null;
         }
@@ -1093,12 +1094,40 @@
             }
         }
 
+        async function syncApplicantApplications() {
+            if (!window.QprApi) {
+                return true;
+            }
+
+            try {
+                await window.QprApi.fetchApplicantApplications();
+                return true;
+            } catch (error) {
+                console.error('Failed to sync applicant applications:', error);
+                if (error.status === 401) {
+                    window.QprApi.clearApplicantSession();
+                    window.location.href = 'login.html';
+                }
+                return false;
+            }
+        }
+
         // Kontrollo nëse përdoruesi është i loguar
-        window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('applicantLoggedIn');
-            const email = localStorage.getItem('applicantEmail');
-            
-            if (!isLoggedIn || !email) {
+        window.addEventListener('DOMContentLoaded', async function() {
+            if (!window.QprApi) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const synced = await syncApplicantApplications();
+            if (!synced) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const session = window.QprApi.getApplicantSessionData();
+            const email = session.user?.email || '';
+            if (!email) {
                 window.location.href = 'login.html';
                 return;
             }
@@ -1124,19 +1153,24 @@
                 }
             }
             
-            loadApplications();
+            await loadApplications();
         });
 
-        function logout() {
-            localStorage.removeItem('applicantLoggedIn');
-            localStorage.removeItem('applicantEmail');
+        async function logout() {
+            if (window.QprApi) {
+                await window.QprApi.logoutApplicant();
+            }
             window.location.href = 'login.html';
         }
 
-        function loadApplications() {
-            // Simulim i aplikimeve (në prodhim do të bëhet me API real)
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-            const userEmail = localStorage.getItem('applicantEmail');
+        async function loadApplications() {
+            const synced = await syncApplicantApplications();
+            if (!synced) {
+                return;
+            }
+
+            const applications = window.QprApi ? window.QprApi.getApplicantSessionData().applications : [];
+            const userEmail = window.QprApi ? window.QprApi.getApplicantSessionData().user?.email : '';
             
             // Filtro aplikimet e këtij përdoruesi
             const userApplications = applications.filter(app => app.email === userEmail);
@@ -1241,7 +1275,7 @@
         }
 
         function loadProfile() {
-            const email = localStorage.getItem('applicantEmail');
+            const email = window.QprApi ? window.QprApi.getApplicantSessionData().user?.email : '';
             const latestApp = getLatestUserApplication(email);
             const profileName = latestApp ?
                 [
@@ -1301,10 +1335,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const changePasswordForm = document.getElementById('changePasswordForm');
             if (changePasswordForm) {
-                changePasswordForm.addEventListener('submit', function(e) {
+                changePasswordForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
-                    const email = localStorage.getItem('applicantEmail');
                     const currentPassword = document.getElementById('currentPassword').value;
                     const newPassword = document.getElementById('newPassword').value;
                     const confirmNewPassword = document.getElementById('confirmNewPassword').value;
@@ -1321,31 +1354,13 @@
                         return;
                     }
                     
-                    // Get users from localStorage
-                    const users = JSON.parse(localStorage.getItem('users') || '[]');
-                    const user = users.find(u => u.email === email);
-                    
-                    if (!user) {
-                        showPasswordResult('error', 'Përdoruesi nuk u gjet!');
-                        return;
+                    try {
+                        await window.QprApi.changeApplicantPassword(currentPassword, newPassword);
+                        showPasswordResult('success', 'Fjalëkalimi u ndryshua me sukses!');
+                        changePasswordForm.reset();
+                    } catch (error) {
+                        showPasswordResult('error', error.message || 'Ndryshimi i fjalëkalimit dështoi.');
                     }
-                    
-                    // Verify current password
-                    if (user.password !== currentPassword) {
-                        showPasswordResult('error', 'Fjalëkalimi aktual është i gabuar!');
-                        return;
-                    }
-                    
-                    // Update password
-                    user.password = newPassword;
-                    const updatedUsers = users.map(u => u.email === email ? user : u);
-                    localStorage.setItem('users', JSON.stringify(updatedUsers));
-                    
-                    // Show success message
-                    showPasswordResult('success', 'Fjalëkalimi u ndryshua me sukses!');
-                    
-                    // Clear form
-                    changePasswordForm.reset();
                 });
                 
                 // Real-time password confirmation validation
@@ -1399,8 +1414,8 @@
         }
 
         function loadHistory() {
-            const email = localStorage.getItem('applicantEmail');
-            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const email = window.QprApi ? window.QprApi.getApplicantSessionData().user?.email : '';
+            const applications = window.QprApi ? window.QprApi.getApplicantSessionData().applications : [];
             const userApplications = applications.filter(app => app.email === email)
                 .sort((a, b) => getComparableDateValue(b.submittedDate) - getComparableDateValue(a.submittedDate));
             

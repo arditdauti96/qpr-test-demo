@@ -121,6 +121,7 @@
         </div>
     </div>
 
+    <script src="api-client.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const qprLoginForm = document.getElementById('qprLoginForm');
@@ -130,7 +131,7 @@
                 return;
             }
             
-            qprLoginForm.addEventListener('submit', function(e) {
+            qprLoginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -147,48 +148,14 @@
                     return;
                 }
                 
-                // Check if admin exists
-                const admins = JSON.parse(localStorage.getItem('qprAdmins') || '[]');
-                const admin = admins.find(a => a.email === email);
-                
-                // Default admin (for testing)
-                const defaultAdmin = {
-                    email: 'admin@qpr.al',
-                    password: 'admin123',
-                    name: 'Administrator QPR',
-                    role: 'admin'
-                };
-                
-                let validAdmin = null;
-                
-                if (admin && admin.password === password) {
-                    validAdmin = admin;
-                } else if (email === defaultAdmin.email && password === defaultAdmin.password) {
-                    validAdmin = defaultAdmin;
-                    // Save default admin if not exists
-                    if (!admin) {
-                        admins.push(defaultAdmin);
-                        localStorage.setItem('qprAdmins', JSON.stringify(admins));
-                    }
+                try {
+                    await window.QprApi.loginAdmin(email, password);
+                    console.log('Login successful, redirecting...');
+                    window.location.replace('qpr-dashboard.html');
+                } catch (error) {
+                    console.error('Admin login failed:', error);
+                    alert(error.message || 'Email ose fjalëkalim i gabuar!');
                 }
-                
-                if (!validAdmin) {
-                    console.log('Invalid credentials');
-                    alert('Email ose fjalëkalim i gabuar! Ju lutem kontrolloni kredencialet tuaja.\n\nPër test:\nEmail: admin@qpr.al\nPassword: admin123');
-                    return;
-                }
-                
-                console.log('Login successful, redirecting...');
-                
-                // Login successful
-                localStorage.setItem('qprLoggedIn', 'true');
-                localStorage.setItem('qprEmail', email);
-                localStorage.setItem('qprAdminName', validAdmin.name || 'Administrator');
-                
-                console.log('LocalStorage set. Redirecting to QPR dashboard...');
-                
-                // Redirect to QPR dashboard
-                window.location.replace('qpr-dashboard.html');
             });
         });
         

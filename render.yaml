@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: qpr
+    runtime: node
+    rootDir: .
+    buildCommand: npm --prefix backend install
+    startCommand: npm --prefix backend start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: qpr-db
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DEFAULT_ADMIN_EMAIL
+        value: admin@qpr.al
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false
+      - key: DEFAULT_ADMIN_NAME
+        value: Administrator QPR
+
+databases:
+  - name: qpr-db
+    databaseName: qpr
+    user: qpr_user
